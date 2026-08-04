@@ -5,7 +5,7 @@ const steps = [
   {
     num: 1,
     icon: <Search className="w-6 h-6" />,
-    title: "Search Cars",
+    title: "Search Cars.",
     desc: "Browse our extensive fleet and find your perfect match",
   },
   {
