@@ -10,15 +10,16 @@ import {
   ShieldCheck,
   Car,
   Quote,
-  Sparkles,
   Users,
   Building2,
   X,
   AlertTriangle,
 } from "lucide-react";
 
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbzywU3GfbcyvVXKv6JOj2msHLMXsQ9I9cRZnrh_7UdNnnEBUZ6KxyKJbFKRtpaqM2Gtrg/exec";
+
 const features = [
- 
   { icon: <Car className="h-4 w-4" />, label: "50+ Vehicles" },
   { icon: <Users className="h-4 w-4" />, label: "5000+ Customers" },
 ];
@@ -46,9 +47,6 @@ const TESTIMONIALS = [
       "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=80&h=80&fit=crop",
   },
 ];
-
-const ADMIN_EMAIL = "admin@gmail.com";
-const ADMIN_PASSWORD = "123456";
 
 function FloatingField({
   label,
@@ -148,8 +146,7 @@ export default function Login() {
   const [capsLockOn, setCapsLockOn] = useState(false);
   const [showDemoBanner, setShowDemoBanner] = useState(true);
   const [quoteIndex, setQuoteIndex] = useState(0);
-
-  const isAdminEmail = form.email.trim().toLowerCase() === ADMIN_EMAIL;
+  const [loggedInUser, setLoggedInUser] = useState(null);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 30);
@@ -183,33 +180,62 @@ export default function Login() {
     return Object.keys(next).length === 0;
   };
 
-  const finishLogin = (asAdmin) => {
-    setStatus("loading");
-    setTimeout(() => {
-      setStatus("success");
-      setTimeout(() => {
-        navigate(asAdmin ? "/dashboard" : "/");
-      }, 1200);
-    }, 1300);
-  };
-
-  const handleEmailSubmit = (e) => {
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
     if (!validateEmail()) return;
 
-    // Admin email must match the admin password exactly; any other valid
-    // email/password combo is treated as a customer login (demo only —
-    // there's no real backend/auth here).
-    if (isAdminEmail && form.password !== ADMIN_PASSWORD) {
+    setStatus("loading");
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8",
+        },
+        body: JSON.stringify({
+          action: "login",
+          email: form.email.trim(),
+          password: form.password,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const result = await res.json();
+
+      if (!result.success) {
+        setStatus("idle");
+        setErrors((er) => ({
+          ...er,
+          password: result.message || "Login failed",
+        }));
+        return;
+      }
+
+      // Save session
+      setLoggedInUser(result.user);
+      if (remember) {
+        localStorage.setItem("mg_user", JSON.stringify(result.user));
+      } else {
+        sessionStorage.setItem("mg_user", JSON.stringify(result.user));
+      }
+
+      setStatus("success");
+      setTimeout(() => {
+        navigate(result.user.role === "admin" ? "/dashboard" : "/");
+      }, 1200);
+    } catch (err) {
+      setStatus("idle");
       setErrors((er) => ({
         ...er,
-        password: "Incorrect password for the admin account",
+        password: "Couldn't reach the server. Please try again.",
       }));
-      return;
     }
-    finishLogin(isAdminEmail);
   };
 
+  const isAdminEmail = false; // no longer needed for validation, kept false to avoid stale UI logic
 
   return (
     <main className="min-h-screen bg-white">
@@ -292,7 +318,6 @@ export default function Login() {
                 transform: mounted ? "translateY(0)" : "translateY(20px)",
               }}
             >
-             
               <h2 className="text-3xl font-extrabold leading-tight sm:text-4xl">
                 Your one hub for mobility,{" "}
                 <span className="text-[#E53E3E]">property & more</span>
@@ -400,7 +425,7 @@ export default function Login() {
                   Welcome back
                 </h2>
                 <p className="mt-2 max-w-xs text-sm text-gray-500">
-                  {isAdminEmail
+                  {loggedInUser?.role === "admin"
                     ? "You're signed in as admin. Redirecting you to your dashboard now."
                     : "You're signed in. Redirecting you home now."}
                 </p>
@@ -427,7 +452,7 @@ export default function Login() {
                       <span className="font-medium text-gray-500">
                         admin@gmail.com / 123456
                       </span>
-                      . Any other email signs in as a customer.
+                      . Any other registered email signs in as a customer.
                     </span>
                     <button
                       type="button"
