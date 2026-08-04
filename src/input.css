@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom utilities for Millennium Car Rentals */
+@layer utilities {
+  .text-brand {
+    color: #f97316;
+  }
+}

@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Millennium Car Rentals</title>
+    <link rel="stylesheet" href="./output.css" />
+  </head>
+  <body class="bg-slate-950 text-slate-100 antialiased">
+    <main
+      class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(244,114,182,0.12),_transparent_36%),linear-gradient(to_bottom,_#020617,_#0b1222)]"
+    >
+      <section class="relative overflow-hidden px-6 py-10 sm:px-10 lg:px-16">
+        <div class="mx-auto max-w-7xl">
+          <header
+            class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between"
+          >
+            <div>
+              <p
+                class="inline-flex rounded-full border border-slate-700 bg-slate-900/80 px-4 py-1 text-xs uppercase tracking-[0.3em] text-slate-300"
+              >
+                Millennium Car Rentals
+              </p>
+              <h1
+                class="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl"
+              >
+                Your next drive starts here.
+              </h1>
+              <p class="mt-5 max-w-2xl text-lg text-slate-300 sm:text-xl">
+                Premium vehicles, flexible rental plans, and 24/7 support
+                designed for business travelers, vacationers, and local drivers.
+              </p>
+              <div class="mt-8 flex flex-col gap-4 sm:flex-row">
+                <a
+                  href="#fleet"
+                  class="inline-flex items-center justify-center rounded-full bg-sunset px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-sunset/25 transition hover:bg-orange-500"
+                >
+                  Browse Fleet
+                </a>
+                <a
+                  href="#contact"
+                  class="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900/80 px-6 py-3 text-sm font-semibold text-slate-100 transition hover:border-slate-500"
+                >
+                  Book a Ride
+                </a>
+              </div>
+            </div>
+            <div
+              class="rounded-3xl border border-slate-700/50 bg-slate-900/80 p-6 shadow-2xl shadow-slate-950/40 backdrop-blur-xl sm:p-8"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="h-16 w-16 rounded-3xl bg-slate-800 p-3 text-sunset shadow-inner shadow-slate-900/40"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    class="h-full w-full"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M3 12l2-3h5l2 3h6l2 3"></path>
+                    <path d="M5 18h14"></path>
+                    <path d="M7 12v-3"></path>
+                    <path d="M17 12v-3"></path>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm uppercase tracking-[0.25em] text-slate-500">
+                    Fast pickup
+                  </p>
+                  <p class="mt-2 text-lg font-semibold text-white">
+                    Airport & city delivery
+                  </p>
+                </div>
+              </div>
+              <div class="mt-8 grid gap-5 sm:grid-cols-2">
+                <div
+                  class="rounded-3xl bg-slate-950/80 p-5 text-sm text-slate-300"
+                >
+                  <p class="text-slate-100 font-semibold">Flexible plans</p>
+                  <p class="mt-2">
+                    Hourly, daily, and long-term rentals built for every
+                    schedule.
+                  </p>
+                </div>
+                <div
+                  class="rounded-3xl bg-slate-950/80 p-5 text-sm text-slate-300"
+                >
+                  <p class="text-slate-100 font-semibold">Modern fleet</p>
+                  <p class="mt-2">
+                    Luxury sedans, SUVs, EVs, and family vehicles ready on
+                    demand.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <section class="mt-20 grid gap-8 lg:grid-cols-3">
+            <article
+              class="rounded-3xl border border-slate-700/50 bg-slate-900/80 p-8 shadow-xl shadow-slate-950/20 backdrop-blur-xl"
+            >
+              <p class="text-sm uppercase tracking-[0.25em] text-slate-500">
+                Safety first
+              </p>
+              <h2 class="mt-4 text-2xl font-semibold text-white">
+                Sanitized vehicles
+              </h2>
+              <p class="mt-3 text-slate-300">
+                Every car is cleaned and inspected before every rental so you
+                can drive with confidence.
+              </p>
+            </article>
+            <article
+              class="rounded-3xl border border-slate-700/50 bg-slate-900/80 p-8 shadow-xl shadow-slate-950/20 backdrop-blur-xl"
+            >
+              <p class="text-sm uppercase tracking-[0.25em] text-slate-500">
+                Support
+              </p>
+              <h2 class="mt-4 text-2xl font-semibold text-white">
+                24/7 concierge
+              </h2>
+              <p class="mt-3 text-slate-300">
+                Book, change, or cancel any time with instant support and local
+                pickup assistance.
+              </p>
+            </article>
+            <article
+              class="rounded-3xl border border-slate-700/50 bg-slate-900/80 p-8 shadow-xl shadow-slate-950/20 backdrop-blur-xl"
+            >
+              <p class="text-sm uppercase tracking-[0.25em] text-slate-500">
+                Coverage
+              </p>
+              <h2 class="mt-4 text-2xl font-semibold text-white">
+                Transparent pricing
+              </h2>
+              <p class="mt-3 text-slate-300">
+                No hidden fees, no surprises. Choose the plan that fits your
+                route and budget.
+              </p>
+            </article>
+          </section>
+
+          <section
+            id="fleet"
+            class="mt-20 rounded-[2rem] border border-slate-700/50 bg-slate-900/80 p-8 shadow-2xl shadow-slate-950/30 backdrop-blur-xl"
+          >
+            <div
+              class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+            >
+              <div>
+                <p class="text-sm uppercase tracking-[0.25em] text-slate-500">
+                  Featured fleet
+                </p>
+                <h2 class="mt-2 text-3xl font-semibold text-white">
+                  Explore our top rentals
+                </h2>
+              </div>
+              <a
+                href="#contact"
+                class="inline-flex items-center rounded-full bg-sunset px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-500"
+              >
+                Reserve now
+              </a>
+            </div>
+            <div class="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div
+                class="rounded-3xl border border-slate-700/60 bg-slate-950 p-6"
+              >
+                <div class="flex items-center justify-between">
+                  <p class="text-sm text-slate-400">Business sedan</p>
+                  <span
+                    class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase text-slate-400"
+                    >4 seats</span
+                  >
+                </div>
+                <h3 class="mt-4 text-xl font-semibold text-white">Audi A6</h3>
+                <p class="mt-3 text-slate-300">
+                  Comfortable, efficient, and ideal for city trips or corporate
+                  travel.
+                </p>
+              </div>
+              <div
+                class="rounded-3xl border border-slate-700/60 bg-slate-950 p-6"
+              >
+                <div class="flex items-center justify-between">
+                  <p class="text-sm text-slate-400">Spacious SUV</p>
+                  <span
+                    class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase text-slate-400"
+                    >7 seats</span
+                  >
+                </div>
+                <h3 class="mt-4 text-xl font-semibold text-white">BMW X5</h3>
+                <p class="mt-3 text-slate-300">
+                  Roomy and refined for family travel or long-haul drives.
+                </p>
+              </div>
+              <div
+                class="rounded-3xl border border-slate-700/60 bg-slate-950 p-6"
+              >
+                <div class="flex items-center justify-between">
+                  <p class="text-sm text-slate-400">Electric</p>
+                  <span
+                    class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase text-slate-400"
+                    >5 seats</span
+                  >
+                </div>
+                <h3 class="mt-4 text-xl font-semibold text-white">
+                  Tesla Model Y
+                </h3>
+                <p class="mt-3 text-slate-300">
+                  Eco-friendly and tech-forward for modern journeys.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section
+            id="contact"
+            class="mt-20 rounded-[2rem] border border-slate-700/50 bg-slate-900/80 p-8 shadow-2xl shadow-slate-950/30 backdrop-blur-xl sm:p-10"
+          >
+            <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
+              <div>
+                <p class="text-sm uppercase tracking-[0.25em] text-slate-500">
+                  Need help?
+                </p>
+                <h2 class="mt-3 text-3xl font-semibold text-white">
+                  Start your reservation today
+                </h2>
+                <p class="mt-4 text-slate-300">
+                  Call us, book online, or chat with our team and we'll match
+                  you with the perfect car.
+                </p>
+                <div class="mt-6 space-y-4 text-sm text-slate-300">
+                  <p>
+                    <span class="font-semibold text-white">Phone:</span> +1
+                    (800) 555-0199
+                  </p>
+                  <p>
+                    <span class="font-semibold text-white">Email:</span>
+                    support@millenniumrentals.com
+                  </p>
+                </div>
+              </div>
+              <div
+                class="rounded-3xl border border-slate-700/60 bg-slate-950 p-8"
+              >
+                <form class="space-y-5">
+                  <label class="block text-sm text-slate-300">
+                    <span class="text-slate-100">Name</span>
+                    <input
+                      type="text"
+                      placeholder="Alex Morgan"
+                      class="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 outline-none transition focus:border-sunset focus:ring-2 focus:ring-sunset/20"
+                    />
+                  </label>
+                  <label class="block text-sm text-slate-300">
+                    <span class="text-slate-100">Pickup city</span>
+                    <input
+                      type="text"
+                      placeholder="Los Angeles"
+                      class="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 outline-none transition focus:border-sunset focus:ring-2 focus:ring-sunset/20"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    class="w-full rounded-2xl bg-sunset px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-500"
+                  >
+                    Request a quote
+                  </button>
+                </form>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
