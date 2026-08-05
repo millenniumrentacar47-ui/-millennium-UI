@@ -8,6 +8,7 @@ import {
   Star,
   ShieldCheck,
   MessageCircle,
+  AlertCircle,
 } from "lucide-react";
 
 const INR_FORMATTER = new Intl.NumberFormat("en-IN", {
@@ -20,176 +21,14 @@ function formatINR(value) {
   return INR_FORMATTER.format(value);
 }
 
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbyTNVNQuLleYVDNHOR8DRb6s1FZf2bMC9O0eiIep0h8BLYA0kcHLMY71XcQCJAnA2uhxg/exec";
+
 // WhatsApp number bookings get sent to (country code + number, no + or spaces)
 const WHATSAPP_NUMBER = "919947000500";
 
-const cars = [
-  {
-    name: "Toyota Camry 2022",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Gasoline",
-    price: 72,
-    rating: 4.8,
-    trips: 214,
-    image:
-      "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600&h=400&fit=crop",
-  },
-  {
-    name: "Nissan Altima 2021",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Hybrid",
-    price: 62,
-    rating: 4.6,
-    trips: 168,
-    image:
-      "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600&h=400&fit=crop",
-  },
-  {
-    name: "Ford Mustang 2023",
-    seats: 4,
-    transmission: "Manual",
-    fuel: "Gasoline",
-    price: 95,
-    rating: 4.9,
-    trips: 97,
-    image:
-      "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600&h=400&fit=crop",
-  },
-  {
-    name: "Jeep Wrangler 2022",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Diesel",
-    price: 89,
-    rating: 4.7,
-    trips: 142,
-    image:
-      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&h=400&fit=crop",
-  },
-  {
-    name: "BMW 3 Series 2023",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Gasoline",
-    price: 110,
-    rating: 4.9,
-    trips: 88,
-    image:
-      "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&h=400&fit=crop",
-  },
-  {
-    name: "Mercedes-Benz C-Class 2022",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Gasoline",
-    price: 118,
-    rating: 4.8,
-    trips: 102,
-    image:
-      "https://images.unsplash.com/photo-1617469767053-d3b523a0b982?w=600&h=400&fit=crop",
-  },
-  {
-    name: "Honda Civic 2021",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Gasoline",
-    price: 58,
-    rating: 4.5,
-    trips: 256,
-    image:
-      "https://images.unsplash.com/photo-1606152421802-db97b9c7a11b?w=600&h=400&fit=crop",
-  },
-  {
-    name: "Chevrolet Camaro 2023",
-    seats: 4,
-    transmission: "Manual",
-    fuel: "Gasoline",
-    price: 99,
-    rating: 4.8,
-    trips: 76,
-    image:
-      "https://images.unsplash.com/photo-1603386329225-868f9b1ee6c9?w=600&h=400&fit=crop",
-  },
-  {
-    name: "Tesla Model 3 2023",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Electric",
-    price: 105,
-    rating: 4.9,
-    trips: 191,
-    image:
-      "https://images.unsplash.com/photo-1561580125-028ee3bd62eb?w=600&h=400&fit=crop",
-  },
-  {
-    name: "Audi Q5 2022",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Gasoline",
-    price: 115,
-    rating: 4.7,
-    trips: 84,
-    image:
-      "https://images.unsplash.com/photo-1614200179396-2bdb77ebf81b?w=600&h=400&fit=crop",
-  },
-  {
-    name: "Hyundai Tucson 2022",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Hybrid",
-    price: 68,
-    rating: 4.6,
-    trips: 133,
-    image:
-      "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600&h=400&fit=crop",
-  },
-  {
-    name: "Kia Sportage 2023",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Gasoline",
-    price: 64,
-    rating: 4.5,
-    trips: 119,
-    image:
-      "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600&h=400&fit=crop",
-  },
-  {
-    name: "Volkswagen Tiguan 2022",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Diesel",
-    price: 71,
-    rating: 4.6,
-    trips: 107,
-    image:
-      "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=600&h=400&fit=crop",
-  },
-  {
-    name: "Range Rover Evoque 2023",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Gasoline",
-    price: 142,
-    rating: 4.9,
-    trips: 61,
-    image:
-      "https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?w=600&h=400&fit=crop",
-  },
-  {
-    name: "Mazda CX-5 2021",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Gasoline",
-    price: 60,
-    rating: 4.6,
-    trips: 178,
-    image:
-      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=600&h=400&fit=crop",
-  },
-];
+const FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600&h=400&fit=crop";
 
 function todayISO(offsetDays = 0) {
   const d = new Date();
@@ -202,10 +41,11 @@ function diffInDays(from, to) {
   return Math.max(1, Math.round(ms / (1000 * 60 * 60 * 24)));
 }
 
-/** Builds a wa.me link pre-filled with the booking details. Not called in demo mode — kept here so the live WhatsApp redirect can be re-enabled by calling this in handleBook. */
 function buildWhatsAppUrl({ car, pickup, dropoff, days, total }) {
   const message = [
-    `Hi Millennium Group! I'd like to book the *${car.name}*.`,
+    `Hi Millennium Group! I'd like to book the *${car.name}${
+      car.model ? ` (${car.model})` : ""
+    }*.`,
     "",
     `Pick-up: ${pickup}`,
     `Drop-off: ${dropoff} (${days} day${days > 1 ? "s" : ""})`,
@@ -217,7 +57,7 @@ function buildWhatsAppUrl({ car, pickup, dropoff, days, total }) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
-/** Skeleton placeholder shown while listings "load" */
+/** Skeleton placeholder shown while listings load */
 function CardSkeleton() {
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
@@ -245,9 +85,12 @@ function CarCard({ car, index, visible, onSelect }) {
     >
       <div className="relative overflow-hidden">
         <img
-          src={car.image}
+          src={car.image || FALLBACK_IMAGE}
           alt={car.name}
           className="h-52 w-full object-cover transition-transform duration-700 group-hover:scale-110"
+          onError={(e) => {
+            e.currentTarget.src = FALLBACK_IMAGE;
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
@@ -258,12 +101,13 @@ function CarCard({ car, index, visible, onSelect }) {
           <span className="text-xs text-gray-500">/day</span>
         </div>
 
-        <div className="absolute top-4 left-4 flex items-center gap-1 rounded-lg bg-white/90 px-2.5 py-1.5 text-xs font-semibold text-gray-700 shadow-sm backdrop-blur-sm">
-          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-          {car.rating}
-        </div>
+        {Number(car.rating) > 0 && (
+          <div className="absolute top-4 left-4 flex items-center gap-1 rounded-lg bg-white/90 px-2.5 py-1.5 text-xs font-semibold text-gray-700 shadow-sm backdrop-blur-sm">
+            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            {car.rating}
+          </div>
+        )}
 
-        {/* Quick view button revealed on hover */}
         <button
           onClick={() => onSelect(car)}
           className="absolute inset-x-4 bottom-4 translate-y-3 rounded-xl bg-white/95 py-2.5 text-sm font-semibold text-gray-900 opacity-0 shadow-md backdrop-blur-sm transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
@@ -273,11 +117,12 @@ function CarCard({ car, index, visible, onSelect }) {
       </div>
 
       <div className="p-5">
-        <div className="mb-3 flex items-start justify-between gap-2">
+        <div className="mb-1 flex items-start justify-between gap-2">
           <h3 className="font-bold text-lg text-gray-900">{car.name}</h3>
         </div>
         <p className="mb-3 text-xs text-gray-400">
-          {car.trips} trips completed
+          {[car.model, car.year].filter(Boolean).join(" · ")}
+          {Number(car.trips) > 0 ? ` · ${car.trips} trips` : ""}
         </p>
 
         <div className="mb-4 flex items-center gap-4 text-sm text-gray-500">
@@ -313,7 +158,7 @@ function BookingModal({ car, onClose }) {
   const [closing, setClosing] = useState(false);
 
   const days = diffInDays(pickup, dropoff);
-  const subtotal = days * car.price;
+  const subtotal = days * Number(car.price || 0);
   const serviceFee = Math.round(subtotal * 0.08);
   const total = subtotal + serviceFee;
 
@@ -334,7 +179,8 @@ function BookingModal({ car, onClose }) {
   };
 
   const handleBook = () => {
-    // Demo mode: no live WhatsApp redirect — just show what would be sent
+    const url = buildWhatsAppUrl({ car, pickup, dropoff, days, total });
+    window.open(url, "_blank", "noopener,noreferrer");
     setStep("sent");
   };
 
@@ -352,7 +198,7 @@ function BookingModal({ car, onClose }) {
         onClick={handleClose}
       />
 
-      <div className="lst-modal-card relative z-10 w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="lst-modal-card relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl">
         <button
           onClick={handleClose}
           className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-gray-600 shadow-md transition hover:bg-white hover:text-gray-900"
@@ -363,23 +209,32 @@ function BookingModal({ car, onClose }) {
 
         <div className="relative h-44 w-full overflow-hidden">
           <img
-            src={car.image}
+            src={car.image || FALLBACK_IMAGE}
             alt={car.name}
             className="h-full w-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = FALLBACK_IMAGE;
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-4 left-5 text-white">
             <h3 className="text-xl font-bold">{car.name}</h3>
             <div className="mt-1 flex items-center gap-1 text-xs text-white/80">
-              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-              {car.rating} · {car.trips} trips
+              {[car.model, car.year].filter(Boolean).join(" · ")}
+              {Number(car.rating) > 0 && (
+                <>
+                  {" "}
+                  · <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{" "}
+                  {car.rating}
+                </>
+              )}
             </div>
           </div>
         </div>
 
         {step !== "sent" ? (
           <div className="p-6">
-            <div className="mb-5 flex items-center gap-4 text-sm text-gray-500">
+            <div className="mb-3 flex items-center gap-4 text-sm text-gray-500">
               <div className="flex items-center gap-1.5">
                 <Users className="h-4 w-4" /> {car.seats} Seats
               </div>
@@ -390,6 +245,19 @@ function BookingModal({ car, onClose }) {
                 <Fuel className="h-4 w-4" /> {car.fuel}
               </div>
             </div>
+
+            {Array.isArray(car.features) && car.features.length > 0 && (
+              <div className="mb-5 flex flex-wrap gap-1.5">
+                {car.features.map((f) => (
+                  <span
+                    key={f}
+                    className="rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-medium text-[#E53E3E]"
+                  >
+                    {f}
+                  </span>
+                ))}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
@@ -437,7 +305,7 @@ function BookingModal({ car, onClose }) {
 
             <div className="mt-4 flex items-center gap-2 text-xs text-gray-400">
               <ShieldCheck className="h-4 w-4 text-emerald-500" />
-              Free cancellation up to 24 hours before pick-up
+              2 days' rent required as advance to confirm booking
             </div>
 
             <button
@@ -454,34 +322,27 @@ function BookingModal({ car, onClose }) {
               <MessageCircle className="h-8 w-8" />
             </div>
             <h4 className="text-lg font-bold text-gray-900">
-              Booking request ready
+              Opening WhatsApp…
             </h4>
             <p className="mt-1.5 max-w-xs text-sm text-gray-500">
-              In the live site, this would open WhatsApp with your booking
-              details pre-filled and send them straight to our team. Here's a
-              preview of that message:
+              If a new tab didn't open, tap the button below to send your
+              booking request.
             </p>
-
-            <div className="mt-5 w-full rounded-xl border border-gray-100 bg-gray-50 p-4 text-left text-xs leading-relaxed text-gray-600">
-              <p>
-                Hi Millennium Group! I'd like to book the{" "}
-                <span className="font-semibold">{car.name}</span>.
-              </p>
-              <p className="mt-2">Pick-up: {pickup}</p>
-              <p>
-                Drop-off: {dropoff} ({days} day{days > 1 ? "s" : ""})
-              </p>
-              <p>Estimated total: {formatINR(total)}</p>
-              <p className="mt-2">Please confirm availability.</p>
-            </div>
-
-            <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-600">
-              Demo mode · no message sent
-            </span>
-
+            <button
+              onClick={() =>
+                window.open(
+                  buildWhatsAppUrl({ car, pickup, dropoff, days, total }),
+                  "_blank",
+                  "noopener,noreferrer"
+                )
+              }
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3 font-semibold text-white transition hover:bg-[#1ebe5a]"
+            >
+              <MessageCircle className="h-4 w-4" /> Open WhatsApp
+            </button>
             <button
               onClick={handleClose}
-              className="mt-6 w-full rounded-xl border border-gray-200 py-3 font-semibold text-gray-700 transition hover:bg-gray-50"
+              className="mt-3 w-full rounded-xl border border-gray-200 py-3 font-semibold text-gray-700 transition hover:bg-gray-50"
             >
               Done
             </button>
@@ -493,16 +354,42 @@ function BookingModal({ car, onClose }) {
 }
 
 export default function Listings() {
+  const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [visible, setVisible] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setLoading(false), 900);
-    const t2 = setTimeout(() => setVisible(true), 950);
+    let cancelled = false;
+
+    async function fetchCars() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(APPS_SCRIPT_URL);
+        const result = await res.json();
+
+        if (cancelled) return;
+
+        if (!result.success) {
+          setError(result.message || "Failed to load cars");
+        } else {
+          setCars(result.cars || []);
+        }
+      } catch (err) {
+        if (!cancelled) setError("Couldn't reach the server. Please try again.");
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+          setTimeout(() => setVisible(true), 50);
+        }
+      }
+    }
+
+    fetchCars();
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
+      cancelled = true;
     };
   }, []);
 
@@ -562,12 +449,19 @@ export default function Listings() {
           </p>
         </div>
 
+        {error && (
+          <div className="mx-auto mb-8 flex max-w-md items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            {error}
+          </div>
+        )}
+
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {loading
             ? Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
             : cars.map((car, index) => (
                 <CarCard
-                  key={car.name}
+                  key={car.id}
                   car={car}
                   index={index}
                   visible={visible}
@@ -575,6 +469,12 @@ export default function Listings() {
                 />
               ))}
         </div>
+
+        {!loading && !error && cars.length === 0 && (
+          <p className="text-center text-gray-500">
+            No cars available right now. Check back soon.
+          </p>
+        )}
       </div>
 
       {selectedCar && (

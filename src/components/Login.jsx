@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbzywU3GfbcyvVXKv6JOj2msHLMXsQ9I9cRZnrh_7UdNnnEBUZ6KxyKJbFKRtpaqM2Gtrg/exec";
+  "https://script.google.com/macros/s/AKfycbyTNVNQuLleYVDNHOR8DRb6s1FZf2bMC9O0eiIep0h8BLYA0kcHLMY71XcQCJAnA2uhxg/exec";
 
 const features = [
   { icon: <Car className="h-4 w-4" />, label: "50+ Vehicles" },
