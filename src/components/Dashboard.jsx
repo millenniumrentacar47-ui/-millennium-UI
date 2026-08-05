@@ -15,6 +15,12 @@ import {
   Phone,
   Mail,
   TrendingUp,
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  AlertCircle,
+  ImageIcon,
 } from "lucide-react";
 
 const INR_FORMATTER = new Intl.NumberFormat("en-IN", {
@@ -24,102 +30,17 @@ const INR_FORMATTER = new Intl.NumberFormat("en-IN", {
 });
 const formatINR = (v) => INR_FORMATTER.format(v);
 
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbyTNVNQuLleYVDNHOR8DRb6s1FZf2bMC9O0eiIep0h8BLYA0kcHLMY71XcQCJAnA2uhxg/exec";
+
+const FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=300&h=200&fit=crop";
+
 const navItems = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "fleet", label: "Fleet", icon: Car },
   { id: "bookings", label: "Bookings", icon: Calendar },
   { id: "staff", label: "Staff", icon: Users },
-];
-
-const fleet = [
-  {
-    name: "Toyota Camry 2022",
-    type: "Sedan",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Gasoline",
-    price: 72,
-    status: "Available",
-    image:
-      "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=300&h=200&fit=crop",
-  },
-  {
-    name: "Ford Mustang 2023",
-    type: "Coupe",
-    seats: 4,
-    transmission: "Manual",
-    fuel: "Gasoline",
-    price: 95,
-    status: "Rented",
-    image:
-      "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=300&h=200&fit=crop",
-  },
-  {
-    name: "Jeep Wrangler 2022",
-    type: "SUV",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Diesel",
-    price: 89,
-    status: "Available",
-    image:
-      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=300&h=200&fit=crop",
-  },
-  {
-    name: "BMW 3 Series 2023",
-    type: "Sedan",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Gasoline",
-    price: 110,
-    status: "Maintenance",
-    image:
-      "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=300&h=200&fit=crop",
-  },
-  {
-    name: "Tesla Model 3 2023",
-    type: "Sedan",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Electric",
-    price: 105,
-    status: "Rented",
-    image:
-      "https://images.unsplash.com/photo-1561580125-028ee3bd62eb?w=300&h=200&fit=crop",
-  },
-  {
-    name: "Honda Civic 2021",
-    type: "Sedan",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Gasoline",
-    price: 58,
-    status: "Available",
-    image:
-      "https://images.unsplash.com/photo-1606152421802-db97b9c7a11b?w=300&h=200&fit=crop",
-  },
-  {
-    name: "Hyundai Tucson 2022",
-    type: "SUV",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Hybrid",
-    price: 68,
-    status: "Available",
-    image:
-      "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=300&h=200&fit=crop",
-  },
-  {
-    name: "Range Rover Evoque 2023",
-    type: "SUV",
-    seats: 5,
-    transmission: "Automatic",
-    fuel: "Gasoline",
-    price: 142,
-    status: "Maintenance",
-    image:
-      "https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?w=300&h=200&fit=crop",
-  },
 ];
 
 const bookings = [
@@ -248,11 +169,6 @@ const staff = [
   },
 ];
 
-const fleetStatusStyle = {
-  Available: "bg-emerald-50 text-emerald-600",
-  Rented: "bg-amber-50 text-amber-600",
-  Maintenance: "bg-red-50 text-red-600",
-};
 const bookingStatusStyle = {
   Confirmed: "bg-blue-50 text-blue-600",
   Active: "bg-emerald-50 text-emerald-600",
@@ -262,6 +178,10 @@ const bookingStatusStyle = {
 const staffStatusStyle = {
   Active: "bg-emerald-50 text-emerald-600",
   "On Leave": "bg-amber-50 text-amber-600",
+};
+const activeStatusStyle = {
+  Active: "bg-emerald-50 text-emerald-600",
+  Inactive: "bg-gray-100 text-gray-500",
 };
 
 function StatusPill({ label, styleMap }) {
@@ -305,8 +225,385 @@ function StatCard({ icon: Icon, label, value, sub, delay }) {
   );
 }
 
-function OverviewTab() {
-  const available = fleet.filter((c) => c.status === "Available").length;
+// ---------- Empty form template ----------
+const emptyCarForm = {
+  name: "",
+  model: "",
+  year: "",
+  seats: "",
+  transmission: "Manual",
+  fuel: "Petrol",
+  features: "",
+  price: "",
+  rating: "",
+  trips: "",
+  image: "",
+  active: true,
+};
+
+function CarFormModal({ initialCar, onClose, onSaved, adminKey }) {
+  const isEdit = Boolean(initialCar);
+  const [form, setForm] = useState(
+    initialCar
+      ? {
+          name: initialCar.name || "",
+          model: initialCar.model || "",
+          year: initialCar.year || "",
+          seats: initialCar.seats || "",
+          transmission: initialCar.transmission || "Manual",
+          fuel: initialCar.fuel || "Petrol",
+          features: Array.isArray(initialCar.features)
+            ? initialCar.features.join(", ")
+            : initialCar.features || "",
+          price: initialCar.price || "",
+          rating: initialCar.rating || "",
+          trips: initialCar.trips || "",
+          image: initialCar.image || "",
+          active: initialCar.active !== false,
+        }
+      : emptyCarForm
+  );
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+
+    const carPayload = {
+      name: form.name,
+      model: form.model,
+      year: Number(form.year) || form.year,
+      seats: Number(form.seats) || form.seats,
+      transmission: form.transmission,
+      fuel: form.fuel,
+      features: form.features
+        .split(",")
+        .map((f) => f.trim())
+        .filter(Boolean),
+      price: Number(form.price) || 0,
+      rating: Number(form.rating) || 0,
+      trips: Number(form.trips) || 0,
+      image: form.image,
+      active: form.active,
+    };
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(
+          isEdit
+            ? { action: "updateCar", key: adminKey, id: initialCar.id, car: carPayload }
+            : { action: "addCar", key: adminKey, car: carPayload }
+        ),
+      });
+      const result = await res.json();
+
+      if (!result.success) {
+        setError(result.message || "Something went wrong");
+        setSaving(false);
+        return;
+      }
+
+      onSaved();
+    } catch (err) {
+      setError("Couldn't reach the server. Please try again.");
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+          <h3 className="font-bold text-gray-900">
+            {isEdit ? "Edit Vehicle" : "Add Vehicle"}
+          </h3>
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4 p-6">
+          {error && (
+            <div className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
+              <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+              {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className="col-span-2 block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Vehicle Name
+              </span>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                placeholder="Maruti - Alto - Manual"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Model
+              </span>
+              <input
+                name="model"
+                value={form.model}
+                onChange={handleChange}
+                placeholder="Lxi"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Year
+              </span>
+              <input
+                name="year"
+                type="number"
+                value={form.year}
+                onChange={handleChange}
+                placeholder="2024"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Seats
+              </span>
+              <input
+                name="seats"
+                type="number"
+                value={form.seats}
+                onChange={handleChange}
+                placeholder="5"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Price / day (₹)
+              </span>
+              <input
+                name="price"
+                type="number"
+                value={form.price}
+                onChange={handleChange}
+                placeholder="1000"
+                required
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Transmission
+              </span>
+              <select
+                name="transmission"
+                value={form.transmission}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              >
+                <option>Manual</option>
+                <option>Automatic</option>
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Fuel Type
+              </span>
+              <select
+                name="fuel"
+                value={form.fuel}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              >
+                <option>Petrol</option>
+                <option>Diesel</option>
+                <option>Hybrid</option>
+                <option>Electric</option>
+                <option>CNG</option>
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Rating
+              </span>
+              <input
+                name="rating"
+                type="number"
+                step="0.1"
+                min="0"
+                max="5"
+                value={form.rating}
+                onChange={handleChange}
+                placeholder="4.8"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              />
+            </label>
+
+            <label className="col-span-2 block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Features (comma-separated)
+              </span>
+              <input
+                name="features"
+                value={form.features}
+                onChange={handleChange}
+                placeholder="Music Audio Player System, Reverse Sensor"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              />
+            </label>
+
+            <label className="col-span-2 block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Image URL (Drive file link, not folder link)
+              </span>
+              <input
+                name="image"
+                value={form.image}
+                onChange={handleChange}
+                placeholder="https://drive.google.com/file/d/FILE_ID/view"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              />
+            </label>
+
+            <label className="col-span-2 flex items-center gap-2 pt-1">
+              <input
+                type="checkbox"
+                name="active"
+                checked={form.active}
+                onChange={handleChange}
+                className="h-4 w-4 rounded border-gray-300 text-[#E53E3E] focus:ring-[#E53E3E]"
+              />
+              <span className="text-sm text-gray-700">
+                Active (visible on the public site)
+              </span>
+            </label>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#E53E3E] py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-70"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Saving…
+                </>
+              ) : isEdit ? (
+                "Save Changes"
+              ) : (
+                "Add Vehicle"
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function DeleteConfirmModal({ car, onClose, onDeleted, adminKey }) {
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    setError(null);
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "deleteCar", key: adminKey, id: car.id }),
+      });
+      const result = await res.json();
+      if (!result.success) {
+        setError(result.message || "Delete failed");
+        setDeleting(false);
+        return;
+      }
+      onDeleted();
+    } catch (err) {
+      setError("Couldn't reach the server. Please try again.");
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+        <h3 className="font-bold text-gray-900">Delete vehicle?</h3>
+        <p className="mt-2 text-sm text-gray-500">
+          This will permanently remove{" "}
+          <span className="font-semibold text-gray-700">{car.name}</span> from
+          your fleet and the public site.
+        </p>
+        {error && (
+          <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
+            <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+            {error}
+          </div>
+        )}
+        <div className="mt-5 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-70"
+          >
+            {deleting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Deleting…
+              </>
+            ) : (
+              "Delete"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OverviewTab({ fleet, fleetLoading }) {
+  const available = fleet.filter((c) => c.active).length;
   const activeBookings = bookings.filter(
     (b) => b.status === "Active" || b.status === "Confirmed",
   ).length;
@@ -317,8 +614,8 @@ function OverviewTab() {
         <StatCard
           icon={Car}
           label="Vehicles in Fleet"
-          value={fleet.length}
-          sub={`${available} available now`}
+          value={fleetLoading ? "…" : fleet.length}
+          sub={fleetLoading ? undefined : `${available} active now`}
           delay={0}
         />
         <StatCard
@@ -373,79 +670,187 @@ function OverviewTab() {
 
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <h3 className="mb-4 font-bold text-gray-900">Fleet Status</h3>
-          <div className="space-y-3">
-            {["Available", "Rented", "Maintenance"].map((status) => {
-              const count = fleet.filter((c) => c.status === status).length;
-              const pct = Math.round((count / fleet.length) * 100);
-              return (
-                <div key={status}>
-                  <div className="mb-1.5 flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-700">{status}</span>
-                    <span className="text-gray-500">{count} vehicles</span>
+          {fleetLoading ? (
+            <p className="text-sm text-gray-400">Loading fleet…</p>
+          ) : fleet.length === 0 ? (
+            <p className="text-sm text-gray-400">No vehicles yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {["Active", "Inactive"].map((status) => {
+                const count = fleet.filter((c) =>
+                  status === "Active" ? c.active : !c.active
+                ).length;
+                const pct = Math.round((count / fleet.length) * 100);
+                return (
+                  <div key={status}>
+                    <div className="mb-1.5 flex items-center justify-between text-sm">
+                      <span className="font-medium text-gray-700">{status}</span>
+                      <span className="text-gray-500">{count} vehicles</span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                      <div
+                        className={`h-full rounded-full ${
+                          status === "Active" ? "bg-emerald-500" : "bg-gray-300"
+                        }`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
-                    <div
-                      className={`h-full rounded-full ${
-                        status === "Available"
-                          ? "bg-emerald-500"
-                          : status === "Rented"
-                            ? "bg-amber-500"
-                            : "bg-red-500"
-                      }`}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function FleetTab() {
+function FleetTab({ fleet, loading, error, onRefresh, adminKey, requireKey }) {
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingCar, setEditingCar] = useState(null);
+  const [deletingCar, setDeletingCar] = useState(null);
+
+  const openAdd = () => {
+    if (!requireKey()) return;
+    setEditingCar(null);
+    setFormOpen(true);
+  };
+
+  const openEdit = (car) => {
+    if (!requireKey()) return;
+    setEditingCar(car);
+    setFormOpen(true);
+  };
+
+  const openDelete = (car) => {
+    if (!requireKey()) return;
+    setDeletingCar(car);
+  };
+
   return (
     <div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
       <div className="flex items-center justify-between border-b border-gray-100 p-6">
-        <h3 className="font-bold text-gray-900">Vehicle Fleet</h3>
-        <span className="text-sm text-gray-500">{fleet.length} vehicles</span>
+        <div>
+          <h3 className="font-bold text-gray-900">Vehicle Fleet</h3>
+          <p className="text-sm text-gray-500">
+            {loading ? "Loading…" : `${fleet.length} vehicles`}
+          </p>
+        </div>
+        <button
+          onClick={openAdd}
+          className="flex items-center gap-2 rounded-xl bg-[#E53E3E] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+        >
+          <Plus className="h-4 w-4" /> Add Vehicle
+        </button>
       </div>
-      <div className="grid gap-5 p-6 sm:grid-cols-2 lg:grid-cols-3">
-        {fleet.map((car) => (
-          <div
-            key={car.name}
-            className="overflow-hidden rounded-2xl border border-gray-100"
-          >
-            <div className="relative">
-              <img
-                src={car.image}
-                alt={car.name}
-                className="h-32 w-full object-cover"
-              />
-              <div className="absolute top-2 right-2">
-                <StatusPill label={car.status} styleMap={fleetStatusStyle} />
+
+      {error && (
+        <div className="m-6 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="grid gap-5 p-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-64 animate-pulse rounded-2xl bg-gray-100"
+            />
+          ))}
+        </div>
+      ) : fleet.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-2 p-16 text-center">
+          <Car className="h-8 w-8 text-gray-300" />
+          <p className="text-sm text-gray-500">
+            No vehicles yet. Add your first one to get started.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-5 p-6 sm:grid-cols-2 lg:grid-cols-3">
+          {fleet.map((car) => (
+            <div
+              key={car.id}
+              className="overflow-hidden rounded-2xl border border-gray-100"
+            >
+              <div className="relative">
+                <img
+                  src={car.image || FALLBACK_IMAGE}
+                  alt={car.name}
+                  className="h-32 w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = FALLBACK_IMAGE;
+                  }}
+                />
+                <div className="absolute top-2 right-2">
+                  <StatusPill
+                    label={car.active ? "Active" : "Inactive"}
+                    styleMap={activeStatusStyle}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="p-4">
-              <h4 className="font-bold text-gray-900">{car.name}</h4>
-              <p className="mt-0.5 text-xs text-gray-500">
-                {car.type} · {car.seats} seats · {car.transmission}
-              </p>
-              <div className="mt-3 flex items-center justify-between">
-                <span className="text-sm font-bold text-[#E53E3E]">
-                  {formatINR(car.price)}
-                  <span className="text-xs font-normal text-gray-400">
-                    /day
+              <div className="p-4">
+                <h4 className="font-bold text-gray-900">{car.name}</h4>
+                <p className="mt-0.5 text-xs text-gray-500">
+                  {[car.model, car.year, `${car.seats} seats`, car.transmission]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-sm font-bold text-[#E53E3E]">
+                    {formatINR(car.price)}
+                    <span className="text-xs font-normal text-gray-400">
+                      /day
+                    </span>
                   </span>
-                </span>
-                <span className="text-xs text-gray-400">{car.fuel}</span>
+                  <span className="text-xs text-gray-400">{car.fuel}</span>
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={() => openEdit(car)}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </button>
+                  <button
+                    onClick={() => openDelete(car)}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-red-100 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Delete
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {formOpen && (
+        <CarFormModal
+          initialCar={editingCar}
+          adminKey={adminKey}
+          onClose={() => setFormOpen(false)}
+          onSaved={() => {
+            setFormOpen(false);
+            onRefresh();
+          }}
+        />
+      )}
+
+      {deletingCar && (
+        <DeleteConfirmModal
+          car={deletingCar}
+          adminKey={adminKey}
+          onClose={() => setDeletingCar(null)}
+          onDeleted={() => {
+            setDeletingCar(null);
+            onRefresh();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -549,13 +954,103 @@ function StaffTab() {
   );
 }
 
+function AdminKeyModal({ onSubmit, onClose }) {
+  const [key, setKey] = useState("");
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+        <h3 className="font-bold text-gray-900">Admin key required</h3>
+        <p className="mt-2 text-sm text-gray-500">
+          Enter your admin key to add, edit, or delete vehicles.
+        </p>
+        <input
+          type="password"
+          value={key}
+          onChange={(e) => setKey(e.target.value)}
+          placeholder="Admin key"
+          autoFocus
+          className="mt-4 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#E53E3E]"
+        />
+        <div className="mt-5 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => key.trim() && onSubmit(key.trim())}
+            className="flex-1 rounded-xl bg-[#E53E3E] py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
+  const [fleet, setFleet] = useState([]);
+  const [fleetLoading, setFleetLoading] = useState(true);
+  const [fleetError, setFleetError] = useState(null);
+
+  const [adminKey, setAdminKey] = useState(
+    () => sessionStorage.getItem("mg_admin_key") || ""
+  );
+  const [keyModalOpen, setKeyModalOpen] = useState(false);
+
+  const fetchFleet = async () => {
+    setFleetLoading(true);
+    setFleetError(null);
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?includeInactive=true`);
+      const result = await res.json();
+      if (!result.success) {
+        setFleetError(result.message || "Failed to load fleet");
+      } else {
+        setFleet(result.cars || []);
+      }
+    } catch (err) {
+      setFleetError("Couldn't reach the server. Please try again.");
+    } finally {
+      setFleetLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFleet();
+  }, []);
+
+  // Ensures an admin key is set before any write action; opens a prompt if missing.
+  const requireKey = () => {
+    if (adminKey) return true;
+    setKeyModalOpen(true);
+    return false;
+  };
+
+  const handleKeySubmit = (key) => {
+    setAdminKey(key);
+    sessionStorage.setItem("mg_admin_key", key);
+    setKeyModalOpen(false);
+  };
+
   const tabComponents = {
-    overview: <OverviewTab />,
-    fleet: <FleetTab />,
+    overview: <OverviewTab fleet={fleet} fleetLoading={fleetLoading} />,
+    fleet: (
+      <FleetTab
+        fleet={fleet}
+        loading={fleetLoading}
+        error={fleetError}
+        onRefresh={fetchFleet}
+        adminKey={adminKey}
+        requireKey={requireKey}
+      />
+    ),
     bookings: <BookingsTab />,
     staff: <StaffTab />,
   };
@@ -620,49 +1115,49 @@ export default function Dashboard() {
           </div>
         </aside>
 
-        {/* MOBILE NAV DRAWER */}
-        {mobileNavOpen && (
-          <div className="fixed inset-0 z-40 lg:hidden">
-            <div
-              className="absolute inset-0 bg-black/50"
-              onClick={() => setMobileNavOpen(false)}
-            />
-            <aside className="absolute inset-y-0 left-0 flex w-64 flex-col bg-[#0F1115] text-white">
-              <div className="flex items-center justify-between px-6 py-6">
-                <span className="text-lg font-extrabold">Millennium Group</span>
-                <button
-                  onClick={() => setMobileNavOpen(false)}
-                  aria-label="Close menu"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <nav className="flex-1 space-y-1 px-4">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  const active = activeTab === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        setActiveTab(item.id);
-                        setMobileNavOpen(false);
-                      }}
-                      className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
-                        active
-                          ? "bg-[#E53E3E] text-white"
-                          : "text-white/60 hover:bg-white/5 hover:text-white"
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </nav>
-            </aside>
-          </div>
-        )}
+      {/* MOBILE NAV DRAWER */}
+{mobileNavOpen && (
+  <div className="fixed inset-0 z-40 lg:hidden">
+    <div
+      className="absolute inset-0 bg-black/50"
+      onClick={() => setMobileNavOpen(false)}
+    />
+    <aside className="absolute inset-y-0 left-0 flex w-64 flex-col bg-[#0F1115] text-white">
+      <div className="flex items-center justify-between px-6 py-6">
+        <span className="text-lg font-extrabold">Millennium Group</span>
+        <button
+          onClick={() => setMobileNavOpen(false)}
+          aria-label="Close menu"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+      <nav className="flex-1 space-y-1 px-4">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveTab(item.id);
+                setMobileNavOpen(false);
+              }}
+              className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
+                active
+                  ? "bg-[#E53E3E] text-white"
+                  : "text-white/60 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {item.label}
+            </button>
+          );
+        })}
+      </nav>
+    </aside>
+  </div>
+)}
 
         {/* MAIN */}
         <div className="flex min-h-screen flex-1 flex-col lg:pl-64">
@@ -710,6 +1205,13 @@ export default function Dashboard() {
           </main>
         </div>
       </div>
+
+      {keyModalOpen && (
+        <AdminKeyModal
+          onSubmit={handleKeySubmit}
+          onClose={() => setKeyModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
