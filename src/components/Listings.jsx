@@ -9,6 +9,9 @@ import {
   ShieldCheck,
   MessageCircle,
   AlertCircle,
+  Loader2,
+  User,
+  Phone,
 } from "lucide-react";
 
 const INR_FORMATTER = new Intl.NumberFormat("en-IN", {
@@ -22,7 +25,7 @@ function formatINR(value) {
 }
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyTNVNQuLleYVDNHOR8DRb6s1FZf2bMC9O0eiIep0h8BLYA0kcHLMY71XcQCJAnA2uhxg/exec";
+  "https://script.google.com/macros/s/AKfycbw_M2ADqlFAnW3K1b70_rdbg4ULlcESyX2B5Gj8iwr5N0gzf0_-cgpGTclj5nStF6Tn6Q/exec";
 
 // WhatsApp number bookings get sent to (country code + number, no + or spaces)
 const WHATSAPP_NUMBER = "919947000500";
@@ -41,12 +44,14 @@ function diffInDays(from, to) {
   return Math.max(1, Math.round(ms / (1000 * 60 * 60 * 24)));
 }
 
-function buildWhatsAppUrl({ car, pickup, dropoff, days, total }) {
+function buildWhatsAppUrl({ car, customerName, customerPhone, pickup, dropoff, days, total }) {
   const message = [
     `Hi Millennium Group! I'd like to book the *${car.name}${
       car.model ? ` (${car.model})` : ""
     }*.`,
     "",
+    `Name: ${customerName}`,
+    `Phone: ${customerPhone}`,
     `Pick-up: ${pickup}`,
     `Drop-off: ${dropoff} (${days} day${days > 1 ? "s" : ""})`,
     `Estimated total: ${formatINR(total)}`,
@@ -154,8 +159,11 @@ function CarCard({ car, index, visible, onSelect }) {
 function BookingModal({ car, onClose }) {
   const [pickup, setPickup] = useState(todayISO());
   const [dropoff, setDropoff] = useState(todayISO(2));
-  const [step, setStep] = useState("form"); // form -> sent
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [step, setStep] = useState("form"); // form -> saving -> sent
   const [closing, setClosing] = useState(false);
+  const [formError, setFormError] = useState(null);
 
   const days = diffInDays(pickup, dropoff);
   const subtotal = days * Number(car.price || 0);
@@ -178,8 +186,44 @@ function BookingModal({ car, onClose }) {
     setTimeout(onClose, 220);
   };
 
-  const handleBook = () => {
-    const url = buildWhatsAppUrl({ car, pickup, dropoff, days, total });
+  const handleBook = async () => {
+    if (!customerName.trim() || !customerPhone.trim()) {
+      setFormError("Please enter your name and phone number");
+      return;
+    }
+    setFormError(null);
+    setStep("saving");
+
+    // Save the booking as "Pending" in the Bookings sheet
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "createBooking",
+          carId: car.id,
+          carName: `${car.name}${car.model ? ` (${car.model})` : ""}`,
+          customerName: customerName.trim(),
+          phone: customerPhone.trim(),
+          pickup,
+          dropoff,
+          days,
+          amount: total,
+        }),
+      });
+    } catch (err) {
+      // Even if saving fails, still let the customer reach us on WhatsApp directly
+    }
+
+    const url = buildWhatsAppUrl({
+      car,
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
+      pickup,
+      dropoff,
+      days,
+      total,
+    });
     window.open(url, "_blank", "noopener,noreferrer");
     setStep("sent");
   };
@@ -259,7 +303,33 @@ function BookingModal({ car, onClose }) {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
+            {/* Customer details */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                  <User className="h-3.5 w-3.5" /> Your Name
+                </span>
+                <input
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Full name"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-[#E53E3E] focus:ring-2 focus:ring-red-100"
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                  <Phone className="h-3.5 w-3.5" /> Phone Number
+                </span>
+                <input
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="98470 XXXXX"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-[#E53E3E] focus:ring-2 focus:ring-red-100"
+                />
+              </label>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-3">
               <label className="block">
                 <span className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-500">
                   <Calendar className="h-3.5 w-3.5" /> Pick-up
@@ -286,6 +356,10 @@ function BookingModal({ car, onClose }) {
               </label>
             </div>
 
+            {formError && (
+              <p className="mt-2 text-xs font-medium text-red-500">{formError}</p>
+            )}
+
             <div className="mt-5 space-y-2 rounded-xl bg-gray-50 p-4 text-sm">
               <div className="flex justify-between text-gray-600">
                 <span>
@@ -310,10 +384,19 @@ function BookingModal({ car, onClose }) {
 
             <button
               onClick={handleBook}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3.5 font-semibold text-white transition-all hover:bg-[#1ebe5a] active:scale-[0.98]"
+              disabled={step === "saving"}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3.5 font-semibold text-white transition-all hover:bg-[#1ebe5a] active:scale-[0.98] disabled:opacity-70"
             >
-              <MessageCircle className="h-4 w-4" />
-              Book Now via WhatsApp · {formatINR(total)}
+              {step === "saving" ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Saving booking…
+                </>
+              ) : (
+                <>
+                  <MessageCircle className="h-4 w-4" />
+                  Book Now via WhatsApp · {formatINR(total)}
+                </>
+              )}
             </button>
           </div>
         ) : (
@@ -322,16 +405,24 @@ function BookingModal({ car, onClose }) {
               <MessageCircle className="h-8 w-8" />
             </div>
             <h4 className="text-lg font-bold text-gray-900">
-              Opening WhatsApp…
+              Booking request sent
             </h4>
             <p className="mt-1.5 max-w-xs text-sm text-gray-500">
-              If a new tab didn't open, tap the button below to send your
-              booking request.
+              We've saved your request and it's pending confirmation. If a new
+              tab didn't open, tap below to send it on WhatsApp too.
             </p>
             <button
               onClick={() =>
                 window.open(
-                  buildWhatsAppUrl({ car, pickup, dropoff, days, total }),
+                  buildWhatsAppUrl({
+                    car,
+                    customerName,
+                    customerPhone,
+                    pickup,
+                    dropoff,
+                    days,
+                    total,
+                  }),
                   "_blank",
                   "noopener,noreferrer"
                 )

@@ -20,7 +20,8 @@ import {
   Trash2,
   Loader2,
   AlertCircle,
-  ImageIcon,
+  Check,
+  Ban,
 } from "lucide-react";
 
 const INR_FORMATTER = new Intl.NumberFormat("en-IN", {
@@ -31,7 +32,7 @@ const INR_FORMATTER = new Intl.NumberFormat("en-IN", {
 const formatINR = (v) => INR_FORMATTER.format(v);
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyTNVNQuLleYVDNHOR8DRb6s1FZf2bMC9O0eiIep0h8BLYA0kcHLMY71XcQCJAnA2uhxg/exec";
+  "https://script.google.com/macros/s/AKfycbw_M2ADqlFAnW3K1b70_rdbg4ULlcESyX2B5Gj8iwr5N0gzf0_-cgpGTclj5nStF6Tn6Q/exec";
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=300&h=200&fit=crop";
@@ -41,69 +42,6 @@ const navItems = [
   { id: "fleet", label: "Fleet", icon: Car },
   { id: "bookings", label: "Bookings", icon: Calendar },
   { id: "staff", label: "Staff", icon: Users },
-];
-
-const bookings = [
-  {
-    id: "BK-1042",
-    customer: "Ananya Menon",
-    phone: "+91 98470 12345",
-    car: "Toyota Camry 2022",
-    pickup: "2026-08-02",
-    dropoff: "2026-08-05",
-    amount: 216,
-    status: "Confirmed",
-  },
-  {
-    id: "BK-1041",
-    customer: "Rahul Nair",
-    phone: "+91 94950 23456",
-    car: "Ford Mustang 2023",
-    pickup: "2026-08-01",
-    dropoff: "2026-08-03",
-    amount: 190,
-    status: "Active",
-  },
-  {
-    id: "BK-1040",
-    customer: "Sneha Pillai",
-    phone: "+91 97460 34567",
-    car: "Tesla Model 3 2023",
-    pickup: "2026-07-29",
-    dropoff: "2026-07-31",
-    amount: 210,
-    status: "Completed",
-  },
-  {
-    id: "BK-1039",
-    customer: "Vishnu Kumar",
-    phone: "+91 96330 45678",
-    car: "Jeep Wrangler 2022",
-    pickup: "2026-08-04",
-    dropoff: "2026-08-09",
-    amount: 445,
-    status: "Pending",
-  },
-  {
-    id: "BK-1038",
-    customer: "Divya Raj",
-    phone: "+91 95440 56789",
-    car: "Honda Civic 2021",
-    pickup: "2026-07-27",
-    dropoff: "2026-07-28",
-    amount: 58,
-    status: "Completed",
-  },
-  {
-    id: "BK-1037",
-    customer: "Arjun Das",
-    phone: "+91 90480 67890",
-    car: "Hyundai Tucson 2022",
-    pickup: "2026-08-06",
-    dropoff: "2026-08-10",
-    amount: 272,
-    status: "Confirmed",
-  },
 ];
 
 const staff = [
@@ -170,10 +108,9 @@ const staff = [
 ];
 
 const bookingStatusStyle = {
-  Confirmed: "bg-blue-50 text-blue-600",
-  Active: "bg-emerald-50 text-emerald-600",
   Pending: "bg-amber-50 text-amber-600",
-  Completed: "bg-gray-100 text-gray-500",
+  Approved: "bg-emerald-50 text-emerald-600",
+  Rejected: "bg-red-50 text-red-600",
 };
 const staffStatusStyle = {
   Active: "bg-emerald-50 text-emerald-600",
@@ -602,11 +539,15 @@ function DeleteConfirmModal({ car, onClose, onDeleted, adminKey }) {
   );
 }
 
-function OverviewTab({ fleet, fleetLoading }) {
+function OverviewTab({ fleet, fleetLoading, bookings, bookingsLoading }) {
   const available = fleet.filter((c) => c.active).length;
+  const pendingCount = bookings.filter((b) => b.status === "Pending").length;
   const activeBookings = bookings.filter(
-    (b) => b.status === "Active" || b.status === "Confirmed",
+    (b) => b.status === "Pending" || b.status === "Approved",
   ).length;
+  const monthlyRevenue = bookings
+    .filter((b) => b.status === "Approved")
+    .reduce((sum, b) => sum + Number(b.amount || 0), 0);
 
   return (
     <div className="space-y-8">
@@ -621,8 +562,8 @@ function OverviewTab({ fleet, fleetLoading }) {
         <StatCard
           icon={Calendar}
           label="Active Bookings"
-          value={activeBookings}
-          sub="2 pending confirmation"
+          value={bookingsLoading ? "…" : activeBookings}
+          sub={bookingsLoading ? undefined : `${pendingCount} pending confirmation`}
           delay={80}
         />
         <StatCard
@@ -634,9 +575,8 @@ function OverviewTab({ fleet, fleetLoading }) {
         />
         <StatCard
           icon={Wallet}
-          label="This Month's Revenue"
-          value={formatINR(148600)}
-          sub="+12% vs last month"
+          label="Approved Bookings Revenue"
+          value={bookingsLoading ? "…" : formatINR(monthlyRevenue)}
           delay={240}
         />
       </div>
@@ -644,28 +584,34 @@ function OverviewTab({ fleet, fleetLoading }) {
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <h3 className="mb-4 font-bold text-gray-900">Recent Bookings</h3>
-          <div className="space-y-3">
-            {bookings.slice(0, 4).map((b) => (
-              <div
-                key={b.id}
-                className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {b.customer}
-                  </p>
-                  <p className="text-xs text-gray-500">{b.car}</p>
-                  <p className="text-xs text-gray-400">{b.phone}</p>
+          {bookingsLoading ? (
+            <p className="text-sm text-gray-400">Loading bookings…</p>
+          ) : bookings.length === 0 ? (
+            <p className="text-sm text-gray-400">No bookings yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {bookings.slice(0, 4).map((b) => (
+                <div
+                  key={b.id}
+                  className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {b.customerName}
+                    </p>
+                    <p className="text-xs text-gray-500">{b.carName}</p>
+                    <p className="text-xs text-gray-400">{b.phone}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-gray-900">
+                      {formatINR(b.amount)}
+                    </p>
+                    <StatusPill label={b.status} styleMap={bookingStatusStyle} />
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-gray-900">
-                    {formatINR(b.amount)}
-                  </p>
-                  <StatusPill label={b.status} styleMap={bookingStatusStyle} />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
@@ -855,58 +801,142 @@ function FleetTab({ fleet, loading, error, onRefresh, adminKey, requireKey }) {
   );
 }
 
-function BookingsTab() {
+function BookingsTab({ bookings, loading, error, onRefresh, adminKey, requireKey }) {
+  const [actioningId, setActioningId] = useState(null);
+  const [actionError, setActionError] = useState(null);
+
+  const handleStatusChange = async (id, status) => {
+    if (!requireKey()) return;
+    setActioningId(id);
+    setActionError(null);
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "updateBookingStatus", key: adminKey, id, status }),
+      });
+      const result = await res.json();
+      if (!result.success) {
+        setActionError(result.message || "Failed to update booking");
+      } else {
+        onRefresh();
+      }
+    } catch (err) {
+      setActionError("Couldn't reach the server. Please try again.");
+    } finally {
+      setActioningId(null);
+    }
+  };
+
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
       <div className="flex items-center justify-between border-b border-gray-100 p-6">
         <h3 className="font-bold text-gray-900">All Bookings</h3>
-        <span className="text-sm text-gray-500">{bookings.length} total</span>
+        <span className="text-sm text-gray-500">
+          {loading ? "Loading…" : `${bookings.length} total`}
+        </span>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400">
-              <th className="px-6 py-3 font-medium">Booking ID</th>
-              <th className="px-6 py-3 font-medium">Customer</th>
-              <th className="px-6 py-3 font-medium">Contact</th>
-              <th className="px-6 py-3 font-medium">Vehicle</th>
-              <th className="px-6 py-3 font-medium">Pick-up</th>
-              <th className="px-6 py-3 font-medium">Drop-off</th>
-              <th className="px-6 py-3 font-medium">Amount</th>
-              <th className="px-6 py-3 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bookings.map((b) => (
-              <tr
-                key={b.id}
-                className="border-b border-gray-50 last:border-0 hover:bg-gray-50"
-              >
-                <td className="px-6 py-4 font-medium text-gray-900">{b.id}</td>
-                <td className="px-6 py-4 text-gray-700">{b.customer}</td>
-                <td className="px-6 py-4">
-                  <a
-                    href={`tel:${b.phone.replace(/\s+/g, "")}`}
-                    className="flex items-center gap-1.5 text-gray-500 transition hover:text-[#E53E3E]"
-                  >
-                    <Phone className="h-3.5 w-3.5" />
-                    {b.phone}
-                  </a>
-                </td>
-                <td className="px-6 py-4 text-gray-700">{b.car}</td>
-                <td className="px-6 py-4 text-gray-500">{b.pickup}</td>
-                <td className="px-6 py-4 text-gray-500">{b.dropoff}</td>
-                <td className="px-6 py-4 font-semibold text-gray-900">
-                  {formatINR(b.amount)}
-                </td>
-                <td className="px-6 py-4">
-                  <StatusPill label={b.status} styleMap={bookingStatusStyle} />
-                </td>
+
+      {(error || actionError) && (
+        <div className="m-6 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          {error || actionError}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="space-y-3 p-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-16 animate-pulse rounded-xl bg-gray-100" />
+          ))}
+        </div>
+      ) : bookings.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-2 p-16 text-center">
+          <Calendar className="h-8 w-8 text-gray-300" />
+          <p className="text-sm text-gray-500">No bookings yet.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-400">
+                <th className="px-6 py-3 font-medium">Booking ID</th>
+                <th className="px-6 py-3 font-medium">Customer</th>
+                <th className="px-6 py-3 font-medium">Contact</th>
+                <th className="px-6 py-3 font-medium">Vehicle</th>
+                <th className="px-6 py-3 font-medium">Pick-up</th>
+                <th className="px-6 py-3 font-medium">Drop-off</th>
+                <th className="px-6 py-3 font-medium">Amount</th>
+                <th className="px-6 py-3 font-medium">Status</th>
+                <th className="px-6 py-3 font-medium">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {bookings.map((b) => (
+                <tr
+                  key={b.id}
+                  className="border-b border-gray-50 last:border-0 hover:bg-gray-50"
+                >
+                  <td className="px-6 py-4 font-medium text-gray-900">
+                    BK-{String(b.id).padStart(4, "0")}
+                  </td>
+                  <td className="px-6 py-4 text-gray-700">{b.customerName}</td>
+                  <td className="px-6 py-4">
+                    <a
+                      href={`tel:${String(b.phone).replace(/\s+/g, "")}`}
+                      className="flex items-center gap-1.5 text-gray-500 transition hover:text-[#E53E3E]"
+                    >
+                      <Phone className="h-3.5 w-3.5" />
+                      {b.phone}
+                    </a>
+                  </td>
+                  <td className="px-6 py-4 text-gray-700">{b.carName}</td>
+                  <td className="px-6 py-4 text-gray-500">{b.pickup}</td>
+                  <td className="px-6 py-4 text-gray-500">{b.dropoff}</td>
+                  <td className="px-6 py-4 font-semibold text-gray-900">
+                    {formatINR(b.amount)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <StatusPill label={b.status} styleMap={bookingStatusStyle} />
+                  </td>
+                  <td className="px-6 py-4">
+                    {b.status === "Pending" ? (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleStatusChange(b.id, "Approved")}
+                          disabled={actioningId === b.id}
+                          className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-600 transition hover:bg-emerald-100 disabled:opacity-60"
+                        >
+                          {actioningId === b.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Check className="h-3 w-3" />
+                          )}
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleStatusChange(b.id, "Rejected")}
+                          disabled={actioningId === b.id}
+                          className="flex items-center gap-1 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-60"
+                        >
+                          {actioningId === b.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Ban className="h-3 w-3" />
+                          )}
+                          Reject
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">—</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
@@ -962,7 +992,7 @@ function AdminKeyModal({ onSubmit, onClose }) {
       <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
         <h3 className="font-bold text-gray-900">Admin key required</h3>
         <p className="mt-2 text-sm text-gray-500">
-          Enter your admin key to add, edit, or delete vehicles.
+          Enter your admin key to manage vehicles or bookings.
         </p>
         <input
           type="password"
@@ -999,6 +1029,10 @@ export default function Dashboard() {
   const [fleetLoading, setFleetLoading] = useState(true);
   const [fleetError, setFleetError] = useState(null);
 
+  const [bookings, setBookings] = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(true);
+  const [bookingsError, setBookingsError] = useState(null);
+
   const [adminKey, setAdminKey] = useState(
     () => sessionStorage.getItem("mg_admin_key") || ""
   );
@@ -1022,8 +1056,27 @@ export default function Dashboard() {
     }
   };
 
+  const fetchBookings = async () => {
+    setBookingsLoading(true);
+    setBookingsError(null);
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getBookings`);
+      const result = await res.json();
+      if (!result.success) {
+        setBookingsError(result.message || "Failed to load bookings");
+      } else {
+        setBookings(result.bookings || []);
+      }
+    } catch (err) {
+      setBookingsError("Couldn't reach the server. Please try again.");
+    } finally {
+      setBookingsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchFleet();
+    fetchBookings();
   }, []);
 
   // Ensures an admin key is set before any write action; opens a prompt if missing.
@@ -1040,7 +1093,14 @@ export default function Dashboard() {
   };
 
   const tabComponents = {
-    overview: <OverviewTab fleet={fleet} fleetLoading={fleetLoading} />,
+    overview: (
+      <OverviewTab
+        fleet={fleet}
+        fleetLoading={fleetLoading}
+        bookings={bookings}
+        bookingsLoading={bookingsLoading}
+      />
+    ),
     fleet: (
       <FleetTab
         fleet={fleet}
@@ -1051,7 +1111,16 @@ export default function Dashboard() {
         requireKey={requireKey}
       />
     ),
-    bookings: <BookingsTab />,
+    bookings: (
+      <BookingsTab
+        bookings={bookings}
+        loading={bookingsLoading}
+        error={bookingsError}
+        onRefresh={fetchBookings}
+        adminKey={adminKey}
+        requireKey={requireKey}
+      />
+    ),
     staff: <StaffTab />,
   };
 
@@ -1083,18 +1152,33 @@ export default function Dashboard() {
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = activeTab === item.id;
+              const pendingCount =
+                item.id === "bookings"
+                  ? bookings.filter((b) => b.status === "Pending").length
+                  : 0;
               return (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
+                  className={`flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
                     active
                       ? "bg-[#E53E3E] text-white"
                       : "text-white/60 hover:bg-white/5 hover:text-white"
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
+                  <span className="flex items-center gap-3">
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </span>
+                  {pendingCount > 0 && (
+                    <span
+                      className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${
+                        active ? "bg-white text-[#E53E3E]" : "bg-amber-400 text-gray-900"
+                      }`}
+                    >
+                      {pendingCount}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -1115,49 +1199,49 @@ export default function Dashboard() {
           </div>
         </aside>
 
-      {/* MOBILE NAV DRAWER */}
-{mobileNavOpen && (
-  <div className="fixed inset-0 z-40 lg:hidden">
-    <div
-      className="absolute inset-0 bg-black/50"
-      onClick={() => setMobileNavOpen(false)}
-    />
-    <aside className="absolute inset-y-0 left-0 flex w-64 flex-col bg-[#0F1115] text-white">
-      <div className="flex items-center justify-between px-6 py-6">
-        <span className="text-lg font-extrabold">Millennium Group</span>
-        <button
-          onClick={() => setMobileNavOpen(false)}
-          aria-label="Close menu"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
-      <nav className="flex-1 space-y-1 px-4">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const active = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveTab(item.id);
-                setMobileNavOpen(false);
-              }}
-              className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
-                active
-                  ? "bg-[#E53E3E] text-white"
-                  : "text-white/60 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              {item.label}
-            </button>
-          );
-        })}
-      </nav>
-    </aside>
-  </div>
-)}
+        {/* MOBILE NAV DRAWER */}
+        {mobileNavOpen && (
+          <div className="fixed inset-0 z-40 lg:hidden">
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setMobileNavOpen(false)}
+            />
+            <aside className="absolute inset-y-0 left-0 flex w-64 flex-col bg-[#0F1115] text-white">
+              <div className="flex items-center justify-between px-6 py-6">
+                <span className="text-lg font-extrabold">Millennium Group</span>
+                <button
+                  onClick={() => setMobileNavOpen(false)}
+                  aria-label="Close menu"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <nav className="flex-1 space-y-1 px-4">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        setMobileNavOpen(false);
+                      }}
+                      className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
+                        active
+                          ? "bg-[#E53E3E] text-white"
+                          : "text-white/60 hover:bg-white/5 hover:text-white"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </nav>
+            </aside>
+          </div>
+        )}
 
         {/* MAIN */}
         <div className="flex min-h-screen flex-1 flex-col lg:pl-64">
@@ -1190,7 +1274,9 @@ export default function Dashboard() {
               </div>
               <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 text-gray-500 transition hover:bg-gray-50">
                 <Bell className="h-4 w-4" />
-                <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#E53E3E]" />
+                {bookings.filter((b) => b.status === "Pending").length > 0 && (
+                  <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#E53E3E]" />
+                )}
               </button>
               <img
                 src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop"
