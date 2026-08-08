@@ -12,6 +12,7 @@ import {
   Loader2,
   User,
   Phone,
+  CheckCircle2,
 } from "lucide-react";
 
 const INR_FORMATTER = new Intl.NumberFormat("en-IN", {
@@ -21,7 +22,7 @@ const INR_FORMATTER = new Intl.NumberFormat("en-IN", {
 });
 
 function formatINR(value) {
-  return INR_FORMATTER.format(value);
+  return INR_FORMATTER.format(value || 0);
 }
 
 const APPS_SCRIPT_URL =
@@ -42,6 +43,17 @@ function todayISO(offsetDays = 0) {
 function diffInDays(from, to) {
   const ms = new Date(to) - new Date(from);
   return Math.max(1, Math.round(ms / (1000 * 60 * 60 * 24)));
+}
+
+/** Helper to check if a car is active based on flexible database responses */
+function isCarAvailable(car) {
+  if (typeof car.active === "boolean") return car.active;
+  if (typeof car.active === "string")
+    return car.active.toUpperCase() === "TRUE" || car.active.toUpperCase() === "ACTIVE";
+  if (typeof car.status === "string")
+    return car.status.toUpperCase() === "ACTIVE" || car.status.toUpperCase() === "TRUE";
+  if (typeof car.is_active !== "undefined") return Boolean(car.is_active);
+  return true; // Default fallback to available if flag is omitted
 }
 
 function buildWhatsAppUrl({ car, customerName, customerPhone, pickup, dropoff, days, total }) {
@@ -77,9 +89,11 @@ function CardSkeleton() {
 }
 
 function CarCard({ car, index, visible, onSelect }) {
+  const available = isCarAvailable(car);
+
   return (
     <div
-      className="lst-card group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow duration-500 hover:shadow-xl"
+      className="lst-card group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-500 hover:shadow-xl"
       style={{
         transitionDelay: visible ? `${index * 90}ms` : "0ms",
         opacity: visible ? 1 : 0,
@@ -92,13 +106,28 @@ function CarCard({ car, index, visible, onSelect }) {
         <img
           src={car.image || FALLBACK_IMAGE}
           alt={car.name}
-          className="h-52 w-full object-cover transition-transform duration-700 group-hover:scale-110"
+          className={`h-52 w-full object-cover transition-transform duration-700 group-hover:scale-110 ${
+            !available ? "grayscale brightness-90" : ""
+          }`}
           onError={(e) => {
             e.currentTarget.src = FALLBACK_IMAGE;
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
+        {/* Available / Unavailable Badge */}
+        <div className="absolute top-4 left-4 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold shadow-md backdrop-blur-md">
+          <span
+            className={`h-2 w-2 rounded-full ${
+              available ? "bg-emerald-500 animate-pulse" : "bg-gray-400"
+            }`}
+          />
+          <span className={available ? "text-emerald-700" : "text-gray-500"}>
+            {available ? "Available" : "Booked"}
+          </span>
+        </div>
+
+        {/* Price Tag */}
         <div className="absolute top-4 right-4 rounded-lg bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
           <span className="text-lg font-bold text-[#E53E3E]">
             {formatINR(car.price)}
@@ -106,24 +135,25 @@ function CarCard({ car, index, visible, onSelect }) {
           <span className="text-xs text-gray-500">/day</span>
         </div>
 
-        {Number(car.rating) > 0 && (
-          <div className="absolute top-4 left-4 flex items-center gap-1 rounded-lg bg-white/90 px-2.5 py-1.5 text-xs font-semibold text-gray-700 shadow-sm backdrop-blur-sm">
-            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-            {car.rating}
-          </div>
+        {available && (
+          <button
+            onClick={() => onSelect(car)}
+            className="absolute inset-x-4 bottom-4 translate-y-3 rounded-xl bg-white/95 py-2.5 text-sm font-semibold text-gray-900 opacity-0 shadow-md backdrop-blur-sm transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
+          >
+            Quick View
+          </button>
         )}
-
-        <button
-          onClick={() => onSelect(car)}
-          className="absolute inset-x-4 bottom-4 translate-y-3 rounded-xl bg-white/95 py-2.5 text-sm font-semibold text-gray-900 opacity-0 shadow-md backdrop-blur-sm transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
-        >
-          Quick View
-        </button>
       </div>
 
       <div className="p-5">
         <div className="mb-1 flex items-start justify-between gap-2">
           <h3 className="font-bold text-lg text-gray-900">{car.name}</h3>
+          {Number(car.rating) > 0 && (
+            <div className="flex items-center gap-1 text-xs font-semibold text-gray-600">
+              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              {car.rating}
+            </div>
+          )}
         </div>
         <p className="mb-3 text-xs text-gray-400">
           {[car.model, car.year].filter(Boolean).join(" · ")}
@@ -146,10 +176,15 @@ function CarCard({ car, index, visible, onSelect }) {
         </div>
 
         <button
-          onClick={() => onSelect(car)}
-          className="w-full rounded-xl bg-[#E53E3E] py-3 font-semibold text-white transition-all hover:bg-red-700 active:scale-[0.98]"
+          onClick={() => available && onSelect(car)}
+          disabled={!available}
+          className={`w-full rounded-xl py-3 font-semibold transition-all active:scale-[0.98] ${
+            available
+              ? "bg-[#E53E3E] text-white hover:bg-red-700"
+              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+          }`}
         >
-          Rent Now
+          {available ? "Rent Now" : "Currently Unavailable"}
         </button>
       </div>
     </div>
@@ -161,7 +196,7 @@ function BookingModal({ car, onClose }) {
   const [dropoff, setDropoff] = useState(todayISO(2));
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [step, setStep] = useState("form"); // form -> saving -> sent
+  const [step, setStep] = useState("form");
   const [closing, setClosing] = useState(false);
   const [formError, setFormError] = useState(null);
 
@@ -181,6 +216,15 @@ function BookingModal({ car, onClose }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handlePickupChange = (newPickup) => {
+    setPickup(newPickup);
+    if (new Date(newPickup) >= new Date(dropoff)) {
+      const nextDay = new Date(newPickup);
+      nextDay.setDate(nextDay.getDate() + 1);
+      setDropoff(nextDay.toISOString().split("T")[0]);
+    }
+  };
+
   const handleClose = () => {
     setClosing(true);
     setTimeout(onClose, 220);
@@ -194,10 +238,10 @@ function BookingModal({ car, onClose }) {
     setFormError(null);
     setStep("saving");
 
-    // Save the booking as "Pending" in the Bookings sheet
     try {
       await fetch(APPS_SCRIPT_URL, {
         method: "POST",
+        mode: "no-cors",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "createBooking",
@@ -212,7 +256,7 @@ function BookingModal({ car, onClose }) {
         }),
       });
     } catch (err) {
-      // Even if saving fails, still let the customer reach us on WhatsApp directly
+      // Allow user to proceed via WhatsApp even if sheet logging fails
     }
 
     const url = buildWhatsAppUrl({
@@ -246,7 +290,7 @@ function BookingModal({ car, onClose }) {
         <button
           onClick={handleClose}
           className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-gray-600 shadow-md transition hover:bg-white hover:text-gray-900"
-          aria-label="Close"
+          aria-label="Close modal"
         >
           <X className="h-4 w-4" />
         </button>
@@ -267,8 +311,8 @@ function BookingModal({ car, onClose }) {
               {[car.model, car.year].filter(Boolean).join(" · ")}
               {Number(car.rating) > 0 && (
                 <>
-                  {" "}
-                  · <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{" "}
+                  {" · "}
+                  <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400 inline" />{" "}
                   {car.rating}
                 </>
               )}
@@ -290,26 +334,13 @@ function BookingModal({ car, onClose }) {
               </div>
             </div>
 
-            {Array.isArray(car.features) && car.features.length > 0 && (
-              <div className="mb-5 flex flex-wrap gap-1.5">
-                {car.features.map((f) => (
-                  <span
-                    key={f}
-                    className="rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-medium text-[#E53E3E]"
-                  >
-                    {f}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Customer details */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="block">
                 <span className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-500">
                   <User className="h-3.5 w-3.5" /> Your Name
                 </span>
                 <input
+                  type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="Full name"
@@ -321,6 +352,7 @@ function BookingModal({ car, onClose }) {
                   <Phone className="h-3.5 w-3.5" /> Phone Number
                 </span>
                 <input
+                  type="tel"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
                   placeholder="98470 XXXXX"
@@ -338,7 +370,7 @@ function BookingModal({ car, onClose }) {
                   type="date"
                   value={pickup}
                   min={todayISO()}
-                  onChange={(e) => setPickup(e.target.value)}
+                  onChange={(e) => handlePickupChange(e.target.value)}
                   className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-[#E53E3E] focus:ring-2 focus:ring-red-100"
                 />
               </label>
@@ -378,7 +410,7 @@ function BookingModal({ car, onClose }) {
             </div>
 
             <div className="mt-4 flex items-center gap-2 text-xs text-gray-400">
-              <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              <ShieldCheck className="h-4 w-4 text-emerald-500 flex-shrink-0" />
               2 days' rent required as advance to confirm booking
             </div>
 
@@ -408,8 +440,7 @@ function BookingModal({ car, onClose }) {
               Booking request sent
             </h4>
             <p className="mt-1.5 max-w-xs text-sm text-gray-500">
-              We've saved your request and it's pending confirmation. If a new
-              tab didn't open, tap below to send it on WhatsApp too.
+              We've saved your request and it's pending confirmation. Tap below to send it on WhatsApp.
             </p>
             <button
               onClick={() =>
@@ -503,7 +534,7 @@ export default function Listings() {
         .lst-modal-in { animation: lst-fade-in 0.2s ease both; }
         .lst-modal-out { animation: lst-fade-out 0.2s ease both; }
 
-        @keyframes lst-scale-in {
+        @keyframes lst-[#scale-in] {
           from { opacity: 0; transform: translateY(16px) scale(0.96); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
