@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import gomez from "../assets/gomez.jpg";
 import {
   ShieldCheck,
   Award,
@@ -507,7 +508,7 @@ export default function AboutUs() {
 
           <Reveal className="mx-auto flex max-w-xl flex-col items-center gap-6 rounded-2xl bg-white p-8 text-center shadow-sm sm:flex-row sm:text-left">
             <img
-              src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop"
+              src={gomez}
               alt="Mr. Patrick Gomez"
               className="h-28 w-28 shrink-0 rounded-full object-cover"
             />
@@ -540,7 +541,7 @@ export default function AboutUs() {
           </p>
           <div className="mt-6 flex items-center justify-center gap-3">
             <img
-              src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop"
+              src={gomez}
               alt="Mr. Patrick Gomez"
               className="h-10 w-10 rounded-full object-cover"
             />
