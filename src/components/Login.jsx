@@ -16,7 +16,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-const APPS_SCRIPT_URL ="https://script.google.com/macros/s/AKfycbw_M2ADqlFAnW3K1b70_rdbg4ULlcESyX2B5Gj8iwr5N0gzf0_-cgpGTclj5nStF6Tn6Q/exec"
+const APPS_SCRIPT_URL ="https://script.google.com/macros/s/AKfycbxNa3Y0VCA624GgRHmAAo_bP6ZakNOIBSqwymfXS8sal5saJPW-gJ_6KAZBBcuFbeudcw/exec"
 const features = [
   { icon: <Car className="h-4 w-4" />, label: "50+ Vehicles" },
   { icon: <Users className="h-4 w-4" />, label: "5000+ Customers" },
@@ -45,6 +45,9 @@ const TESTIMONIALS = [
       "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=80&h=80&fit=crop",
   },
 ];
+
+// Roles allowed into the staff/admin dashboard. Everyone else lands on the public site.
+const DASHBOARD_ROLES = ["admin", "staff"];
 
 function FloatingField({
   label,
@@ -221,8 +224,9 @@ export default function Login() {
       }
 
       setStatus("success");
+      const goToDashboard = DASHBOARD_ROLES.includes(result.user.role);
       setTimeout(() => {
-        navigate(result.user.role === "admin" ? "/dashboard" : "/");
+        navigate(goToDashboard ? "/dashboard" : "/");
       }, 1200);
     } catch (err) {
       setStatus("idle");
@@ -232,8 +236,6 @@ export default function Login() {
       }));
     }
   };
-
-  const isAdminEmail = false; // no longer needed for validation, kept false to avoid stale UI logic
 
   return (
     <main className="min-h-screen bg-white">
@@ -423,8 +425,8 @@ export default function Login() {
                   Welcome back
                 </h2>
                 <p className="mt-2 max-w-xs text-sm text-gray-500">
-                  {loggedInUser?.role === "admin"
-                    ? "You're signed in as admin. Redirecting you to your dashboard now."
+                  {DASHBOARD_ROLES.includes(loggedInUser?.role)
+                    ? "You're signed in. Redirecting you to your dashboard now."
                     : "You're signed in. Redirecting you home now."}
                 </p>
                 <div className="mt-6 h-1 w-40 overflow-hidden rounded-full bg-gray-100">
@@ -446,11 +448,8 @@ export default function Login() {
                 {showDemoBanner && (
                   <div className="mb-6 flex items-start justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-400">
                     <span>
-                      Demo admin login:{" "}
-                      <span className="font-medium text-gray-500">
-                        admin@gmail.com / 123456
-                      </span>
-                      . Any other registered email signs in as a customer.
+                      Admin and staff accounts land on the dashboard. Everyone
+                      else is taken to the public site.
                     </span>
                     <button
                       type="button"

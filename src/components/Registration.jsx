@@ -9,7 +9,6 @@ import {
   ArrowRight,
   ShieldCheck,
   Car,
-  Sparkles,
   Users,
   Building2,
   User,
@@ -18,7 +17,11 @@ import {
   Briefcase,
   ChevronDown,
   CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
+
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbxNa3Y0VCA624GgRHmAAo_bP6ZakNOIBSqwymfXS8sal5saJPW-gJ_6KAZBBcuFbeudcw/exec";
 
 const features = [
   { icon: <ShieldCheck className="h-4 w-4" />, label: "RERA Certified" },
@@ -236,6 +239,7 @@ export default function StaffSignup() {
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle"); // idle | loading | success
+  const [serverError, setServerError] = useState(null);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 30);
@@ -264,19 +268,42 @@ export default function StaffSignup() {
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setServerError(null);
     if (!validate()) return;
 
-    // Demo only — no real backend. In production this should hit a
-    // staff-only registration endpoint that verifies the employee ID
-    // against HR records before creating an account, and likely routes
-    // new accounts to an admin-approval step rather than logging straight in.
     setStatus("loading");
-    setTimeout(() => {
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "signup",
+          name: form.fullName.trim(),
+          employeeId: form.employeeId.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          department: form.department,
+          password: form.password,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!result.success) {
+        setStatus("idle");
+        setServerError(result.message || "Something went wrong. Please try again.");
+        return;
+      }
+
       setStatus("success");
       setTimeout(() => navigate("/login"), 1600);
-    }, 1300);
+    } catch (err) {
+      setStatus("idle");
+      setServerError("Couldn't reach the server. Please try again.");
+    }
   };
 
   return (
@@ -352,7 +379,6 @@ export default function StaffSignup() {
                 transform: mounted ? "translateY(0)" : "translateY(20px)",
               }}
             >
-              
               <h2 className="text-3xl font-extrabold leading-tight sm:text-4xl">
                 Join the team running{" "}
                 <span className="text-[#E53E3E]">mobility & more</span>
@@ -432,9 +458,9 @@ export default function StaffSignup() {
                 <div className="lg-pop mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
                   <ShieldCheck className="h-8 w-8" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Account created</h2>
+                <h2 className="text-xl font-bold text-gray-900">Account request sent</h2>
                 <p className="mt-2 max-w-xs text-sm text-gray-500">
-                  Your staff account request has been submitted. Taking you to
+                  Your staff account is pending admin approval. Taking you to
                   sign in now.
                 </p>
                 <div className="mt-6 h-1 w-40 overflow-hidden rounded-full bg-gray-100">
@@ -453,6 +479,13 @@ export default function StaffSignup() {
                   For Millennium Group employees only. Customers don't need an
                   account to book.
                 </p>
+
+                {serverError && (
+                  <div className="mb-5 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2.5 text-xs font-medium text-red-600">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                    {serverError}
+                  </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <FloatingField

@@ -32,16 +32,16 @@ const INR_FORMATTER = new Intl.NumberFormat("en-IN", {
 const formatINR = (v) => INR_FORMATTER.format(v);
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbw_M2ADqlFAnW3K1b70_rdbg4ULlcESyX2B5Gj8iwr5N0gzf0_-cgpGTclj5nStF6Tn6Q/exec";
+  "https://script.google.com/macros/s/AKfycbxNa3Y0VCA624GgRHmAAo_bP6ZakNOIBSqwymfXS8sal5saJPW-gJ_6KAZBBcuFbeudcw/exec";
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=300&h=200&fit=crop";
 
-const navItems = [
+const ALL_NAV_ITEMS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "fleet", label: "Fleet", icon: Car },
+  { id: "fleet", label: "Fleet", icon: Car, adminOnly: true },
   { id: "bookings", label: "Bookings", icon: Calendar },
-  { id: "staff", label: "Staff", icon: Users },
+  { id: "staff", label: "Staff", icon: Users, adminOnly: true },
 ];
 
 const staff = [
@@ -120,6 +120,16 @@ const activeStatusStyle = {
   Active: "bg-emerald-50 text-emerald-600",
   Inactive: "bg-gray-100 text-gray-500",
 };
+
+function getStoredUser() {
+  try {
+    const raw =
+      localStorage.getItem("mg_user") || sessionStorage.getItem("mg_user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 function StatusPill({ label, styleMap }) {
   return (
@@ -539,7 +549,7 @@ function DeleteConfirmModal({ car, onClose, onDeleted, adminKey }) {
   );
 }
 
-function OverviewTab({ fleet, fleetLoading, bookings, bookingsLoading }) {
+function OverviewTab({ fleet, fleetLoading, bookings, bookingsLoading, isAdmin }) {
   const available = fleet.filter((c) => c.active).length;
   const pendingCount = bookings.filter((b) => b.status === "Pending").length;
   const activeBookings = bookings.filter(
@@ -552,13 +562,15 @@ function OverviewTab({ fleet, fleetLoading, bookings, bookingsLoading }) {
   return (
     <div className="space-y-8">
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          icon={Car}
-          label="Vehicles in Fleet"
-          value={fleetLoading ? "…" : fleet.length}
-          sub={fleetLoading ? undefined : `${available} active now`}
-          delay={0}
-        />
+        {isAdmin && (
+          <StatCard
+            icon={Car}
+            label="Vehicles in Fleet"
+            value={fleetLoading ? "…" : fleet.length}
+            sub={fleetLoading ? undefined : `${available} active now`}
+            delay={0}
+          />
+        )}
         <StatCard
           icon={Calendar}
           label="Active Bookings"
@@ -566,13 +578,15 @@ function OverviewTab({ fleet, fleetLoading, bookings, bookingsLoading }) {
           sub={bookingsLoading ? undefined : `${pendingCount} pending confirmation`}
           delay={80}
         />
-        <StatCard
-          icon={Users}
-          label="Staff Members"
-          value={staff.length}
-          sub="5 currently active"
-          delay={160}
-        />
+        {isAdmin && (
+          <StatCard
+            icon={Users}
+            label="Staff Members"
+            value={staff.length}
+            sub="5 currently active"
+            delay={160}
+          />
+        )}
         <StatCard
           icon={Wallet}
           label="Approved Bookings Revenue"
@@ -581,7 +595,7 @@ function OverviewTab({ fleet, fleetLoading, bookings, bookingsLoading }) {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className={`grid gap-6 ${isAdmin ? "lg:grid-cols-2" : ""}`}>
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <h3 className="mb-4 font-bold text-gray-900">Recent Bookings</h3>
           {bookingsLoading ? (
@@ -614,39 +628,41 @@ function OverviewTab({ fleet, fleetLoading, bookings, bookingsLoading }) {
           )}
         </div>
 
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <h3 className="mb-4 font-bold text-gray-900">Fleet Status</h3>
-          {fleetLoading ? (
-            <p className="text-sm text-gray-400">Loading fleet…</p>
-          ) : fleet.length === 0 ? (
-            <p className="text-sm text-gray-400">No vehicles yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {["Active", "Inactive"].map((status) => {
-                const count = fleet.filter((c) =>
-                  status === "Active" ? c.active : !c.active
-                ).length;
-                const pct = Math.round((count / fleet.length) * 100);
-                return (
-                  <div key={status}>
-                    <div className="mb-1.5 flex items-center justify-between text-sm">
-                      <span className="font-medium text-gray-700">{status}</span>
-                      <span className="text-gray-500">{count} vehicles</span>
+        {isAdmin && (
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <h3 className="mb-4 font-bold text-gray-900">Fleet Status</h3>
+            {fleetLoading ? (
+              <p className="text-sm text-gray-400">Loading fleet…</p>
+            ) : fleet.length === 0 ? (
+              <p className="text-sm text-gray-400">No vehicles yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {["Active", "Inactive"].map((status) => {
+                  const count = fleet.filter((c) =>
+                    status === "Active" ? c.active : !c.active
+                  ).length;
+                  const pct = Math.round((count / fleet.length) * 100);
+                  return (
+                    <div key={status}>
+                      <div className="mb-1.5 flex items-center justify-between text-sm">
+                        <span className="font-medium text-gray-700">{status}</span>
+                        <span className="text-gray-500">{count} vehicles</span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                        <div
+                          className={`h-full rounded-full ${
+                            status === "Active" ? "bg-emerald-500" : "bg-gray-300"
+                          }`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
-                      <div
-                        className={`h-full rounded-full ${
-                          status === "Active" ? "bg-emerald-500" : "bg-gray-300"
-                        }`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1022,7 +1038,15 @@ function AdminKeyModal({ onSubmit, onClose }) {
 }
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [currentUser] = useState(() => getStoredUser());
+  const isAdmin = currentUser?.role === "admin";
+
+  // Nav items visible to this user (staff only see Overview + Bookings)
+  const navItems = ALL_NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
+
+  const [activeTab, setActiveTab] = useState(
+    isAdmin ? "overview" : "bookings"
+  );
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const [fleet, setFleet] = useState([]);
@@ -1075,8 +1099,10 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchFleet();
+    // Staff don't need fleet data at all — skip that fetch entirely for them.
+    if (isAdmin) fetchFleet();
     fetchBookings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Ensures an admin key is set before any write action; opens a prompt if missing.
@@ -1099,18 +1125,21 @@ export default function Dashboard() {
         fleetLoading={fleetLoading}
         bookings={bookings}
         bookingsLoading={bookingsLoading}
+        isAdmin={isAdmin}
       />
     ),
-    fleet: (
-      <FleetTab
-        fleet={fleet}
-        loading={fleetLoading}
-        error={fleetError}
-        onRefresh={fetchFleet}
-        adminKey={adminKey}
-        requireKey={requireKey}
-      />
-    ),
+    ...(isAdmin && {
+      fleet: (
+        <FleetTab
+          fleet={fleet}
+          loading={fleetLoading}
+          error={fleetError}
+          onRefresh={fetchFleet}
+          adminKey={adminKey}
+          requireKey={requireKey}
+        />
+      ),
+    }),
     bookings: (
       <BookingsTab
         bookings={bookings}
@@ -1121,10 +1150,12 @@ export default function Dashboard() {
         requireKey={requireKey}
       />
     ),
-    staff: <StaffTab />,
+    ...(isAdmin && { staff: <StaffTab /> }),
   };
 
-  const activeLabel = navItems.find((n) => n.id === activeTab)?.label;
+  // Guard against a stale activeTab (e.g. staff account with "fleet" cached) — fall back safely.
+  const safeActiveTab = tabComponents[activeTab] ? activeTab : "bookings";
+  const activeLabel = navItems.find((n) => n.id === safeActiveTab)?.label;
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
@@ -1151,7 +1182,7 @@ export default function Dashboard() {
           <nav className="mt-4 flex-1 space-y-1 px-4">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const active = activeTab === item.id;
+              const active = safeActiveTab === item.id;
               const pendingCount =
                 item.id === "bookings"
                   ? bookings.filter((b) => b.status === "Pending").length
@@ -1185,10 +1216,12 @@ export default function Dashboard() {
           </nav>
 
           <div className="space-y-1 px-4 pb-6">
-            <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/60 transition hover:bg-white/5 hover:text-white">
-              <Settings className="h-4 w-4" />
-              Settings
-            </button>
+            {isAdmin && (
+              <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/60 transition hover:bg-white/5 hover:text-white">
+                <Settings className="h-4 w-4" />
+                Settings
+              </button>
+            )}
             <Link
               to="/login"
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/60 transition hover:bg-white/5 hover:text-white"
@@ -1219,7 +1252,7 @@ export default function Dashboard() {
               <nav className="flex-1 space-y-1 px-4">
                 {navItems.map((item) => {
                   const Icon = item.icon;
-                  const active = activeTab === item.id;
+                  const active = safeActiveTab === item.id;
                   return (
                     <button
                       key={item.id}
@@ -1259,7 +1292,7 @@ export default function Dashboard() {
                   {activeLabel}
                 </h1>
                 <p className="hidden text-xs text-gray-400 sm:block">
-                  Welcome back, Patrick
+                  Welcome back{currentUser?.name ? `, ${currentUser.name}` : ""}
                 </p>
               </div>
             </div>
@@ -1280,14 +1313,14 @@ export default function Dashboard() {
               </button>
               <img
                 src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop"
-                alt="Patrick Gomez"
+                alt="Profile"
                 className="h-9 w-9 rounded-full object-cover"
               />
             </div>
           </header>
 
           <main className="flex-1 p-4 sm:p-6 lg:p-8">
-            {tabComponents[activeTab]}
+            {tabComponents[safeActiveTab]}
           </main>
         </div>
       </div>
