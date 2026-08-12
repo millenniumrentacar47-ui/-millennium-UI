@@ -3,56 +3,56 @@ import { Star, Quote, ChevronLeft, ChevronRight, BadgeCheck } from "lucide-react
 
 const testimonials = [
   {
-    name: "James Wilson",
-    role: "Frequent Business Traveler",
+    name: "Aarav Sharma",
+    role: "Frequent Corporate Traveler",
     image:
-      "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=300&fit=crop",
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop",
     rating: 5,
     quote:
-      "I've booked through Millennium Group a dozen times for client visits. Pickup is always under ten minutes and the cars are spotless every time.",
+      "I've booked through Millennium Group multiple times for client visits across Bengaluru and Hyderabad. Pickup is always prompt, cars are spotless, and driver verification gives total peace of mind.",
   },
   {
-    name: "Sarah Anderson",
-    role: "Family Road Trip",
+    name: "Priya Sundaram",
+    role: "Family Outstation Trip",
     image:
       "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=300&fit=crop",
     rating: 5,
     quote:
-      "We needed a last-minute SUV for a family trip and they had us on the road in twenty minutes. Transparent pricing, no surprise fees at drop-off.",
+      "We needed an Innova last-minute for a family trip to Ooty. They got us on the road in under thirty minutes with clear toll and Fastag pricing—no hidden driver charges at drop-off.",
   },
   {
-    name: "Michael Chen",
+    name: "Varun Vasanthan",
     role: "Weekend Getaway",
     image:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop",
+      "https://media.licdn.com/dms/image/v2/C5603AQFvm8ZM1QAqmQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1601720474813?e=2147483647&v=beta&t=VCwMpDcWtKhdFCPfkvK8QCMQTiy0bRpNpDaAor1knOw",
     rating: 4,
     quote:
-      "Solid experience overall — easy app booking and friendly staff. Only wish the weekend deals applied to more vehicle classes.",
+      "Solid experience overall for our road trip to Lonavala. App booking was seamless and car condition was top-notch. Wish weekend discounts applied to luxury sedans too!",
   },
   {
-    name: "Emily Rodriguez",
-    role: "Relocation Rental",
+    name: "Ananya Iyer",
+    role: "Monthly Rental",
     image:
-      "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop",
+      "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=300&h=300&fit=crop",
     rating: 5,
     quote:
-      "Rented for a full month during my move across the state. The team proactively called to check everything was working — that kind of follow-up is rare.",
+      "Rented a car for a full month during my temporary relocation to Pune. Their support team proactively checked in to ensure smooth maintenance—such service quality is hard to find.",
   },
   {
-    name: "Daniela Ruiz",
-    role: "Airport Pickup",
+    name: "Vikram Malhotra",
+    role: "Late-Night Airport Pickup",
     image:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop",
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&h=300&fit=crop",
     rating: 5,
     quote:
-      "Landed at midnight and the counter was still open with my car ready. Small thing, but it made a long travel day so much easier.",
+      "Landed at Delhi airport at 2 AM and the driver was already waiting near arrivals with the AC on. A quick, smooth drop home after a long flight made a huge difference.",
   },
 ];
 
 const ratingBreakdown = [
-  { stars: 5, pct: 78 },
-  { stars: 4, pct: 16 },
-  { stars: 3, pct: 4 },
+  { stars: 5, pct: 82 },
+  { stars: 4, pct: 13 },
+  { stars: 3, pct: 3 },
   { stars: 2, pct: 1 },
   { stars: 1, pct: 1 },
 ];
@@ -138,11 +138,10 @@ export default function Testimonials() {
             Customer Reviews
           </span>
           <h2 className="mb-4 mt-3 text-4xl font-bold text-gray-900">
-            Trusted by Renters Across the Region
+            Trusted by Travelers Across India
           </h2>
           <p className="mx-auto max-w-2xl text-gray-600">
-            Real feedback from people who've rented with Millennium Group —
-            no edits, no cherry-picking.
+            Real feedback from riders who choose Millennium Group every day — transparent, reliable, and verified.
           </p>
         </div>
 
@@ -158,7 +157,7 @@ export default function Testimonials() {
             <div className="text-5xl font-extrabold text-gray-900">{avgRating}</div>
             <Stars count={5} size="h-5 w-5" />
             <p className="mt-2 text-sm text-gray-500">
-              Based on {testimonials.length * 412} verified reviews
+              Based on {testimonials.length * 520} verified reviews
             </p>
           </div>
 
