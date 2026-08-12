@@ -37,6 +37,18 @@ const APPS_SCRIPT_URL =
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=300&h=200&fit=crop";
 
+const FALLBACK_AVATAR =
+  "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop";
+
+// ---------- Apps Script action names ----------
+// These must match whatever your doGet/doPost router dispatches to
+// getAllUsers / updateUser / deleteUser / updateUserStatus with.
+// If your router uses different strings, only these need to change.
+const GET_STAFF_ACTION = "getUsers";
+const UPDATE_STAFF_ACTION = "updateUser";
+const DELETE_STAFF_ACTION = "deleteUser";
+const UPDATE_STAFF_STATUS_ACTION = "updateUserStatus";
+
 const ALL_NAV_ITEMS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "fleet", label: "Fleet", icon: Car, adminOnly: true },
@@ -44,78 +56,13 @@ const ALL_NAV_ITEMS = [
   { id: "staff", label: "Staff", icon: Users, adminOnly: true },
 ];
 
-const staff = [
-  {
-    name: "Patrick Gomez",
-    role: "Founder & Managing Director",
-    dept: "Leadership",
-    phone: "+91 99470 00500",
-    email: "abhilashgomez@gmail.com",
-    status: "Active",
-    image:
-      "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop",
-  },
-  {
-    name: "Meera Suresh",
-    role: "Fleet Operations Manager",
-    dept: "Rent A Car",
-    phone: "+91 98470 11223",
-    email: "meera.suresh@millenniumgroup.in",
-    status: "Active",
-    image:
-      "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=200&h=200&fit=crop",
-  },
-  {
-    name: "Vignesh Pillai",
-    role: "Bike Rental Lead",
-    dept: "Rent A Bike",
-    phone: "+91 96330 44556",
-    email: "vignesh.pillai@millenniumgroup.in",
-    status: "Active",
-    image:
-      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop",
-  },
-  {
-    name: "Anjali Warrier",
-    role: "Site Supervisor",
-    dept: "Construction",
-    phone: "+91 94470 77889",
-    email: "anjali.warrier@millenniumgroup.in",
-    status: "On Leave",
-    image:
-      "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop",
-  },
-  {
-    name: "Thomas Abraham",
-    role: "Property Manager",
-    dept: "Real Estate",
-    phone: "+91 95440 33221",
-    email: "thomas.abraham@millenniumgroup.in",
-    status: "Active",
-    image:
-      "https://images.unsplash.com/photo-1607990283143-e81e7a2c9349?w=200&h=200&fit=crop",
-  },
-  {
-    name: "Fathima Rasheed",
-    role: "Customer Support Lead",
-    dept: "Support",
-    phone: "+91 97460 55667",
-    email: "fathima.rasheed@millenniumgroup.in",
-    status: "Active",
-    image:
-      "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=200&h=200&fit=crop",
-  },
-];
-
 const bookingStatusStyle = {
   Pending: "bg-amber-50 text-amber-600",
   Approved: "bg-emerald-50 text-emerald-600",
   Rejected: "bg-red-50 text-red-600",
 };
-const staffStatusStyle = {
-  Active: "bg-emerald-50 text-emerald-600",
-  "On Leave": "bg-amber-50 text-amber-600",
-};
+// Staff/user rows share the same Pending/Approved/Rejected status values as bookings
+const staffStatusStyle = bookingStatusStyle;
 const activeStatusStyle = {
   Active: "bg-emerald-50 text-emerald-600",
   Inactive: "bg-gray-100 text-gray-500",
@@ -549,7 +496,283 @@ function DeleteConfirmModal({ car, onClose, onDeleted, adminKey }) {
   );
 }
 
-function OverviewTab({ fleet, fleetLoading, bookings, bookingsLoading, isAdmin }) {
+// ---------- Staff: edit form modal ----------
+const emptyStaffForm = {
+  name: "",
+  role: "staff",
+  employeeId: "",
+  phone: "",
+  department: "",
+  status: "Pending",
+};
+
+function StaffFormModal({ staffMember, onClose, onSaved, adminKey }) {
+  const [form, setForm] = useState({
+    name: staffMember.name || "",
+    role: staffMember.role || "staff",
+    employeeId: staffMember.employeeId || "",
+    phone: staffMember.phone || "",
+    department: staffMember.department || "",
+    status: staffMember.status || "Pending",
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((f) => ({ ...f, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: UPDATE_STAFF_ACTION,
+          key: adminKey,
+          email: staffMember.email,
+          updates: { ...form },
+        }),
+      });
+      const result = await res.json();
+
+      if (!result.success) {
+        setError(result.message || "Something went wrong");
+        setSaving(false);
+        return;
+      }
+
+      onSaved();
+    } catch (err) {
+      setError("Couldn't reach the server. Please try again.");
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+          <div>
+            <h3 className="font-bold text-gray-900">Edit Staff Member</h3>
+            <p className="mt-0.5 text-xs text-gray-400">{staffMember.email}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4 p-6">
+          {error && (
+            <div className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
+              <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+              {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className="col-span-2 block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Full Name
+              </span>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Role
+              </span>
+              <select
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              >
+                <option value="staff">Staff</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Status
+              </span>
+              <select
+                name="status"
+                value={form.status}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              >
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Employee ID
+              </span>
+              <input
+                name="employeeId"
+                value={form.employeeId}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Phone
+              </span>
+              <input
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              />
+            </label>
+
+            <label className="col-span-2 block">
+              <span className="mb-1 block text-xs font-medium text-gray-500">
+                Department
+              </span>
+              <input
+                name="department"
+                value={form.department}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#E53E3E]"
+              />
+            </label>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#E53E3E] py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-70"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Saving…
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Staff: delete confirm modal ----------
+function DeleteStaffModal({ staffMember, onClose, onDeleted, adminKey }) {
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    setError(null);
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: DELETE_STAFF_ACTION,
+          key: adminKey,
+          email: staffMember.email,
+        }),
+      });
+      const result = await res.json();
+      if (!result.success) {
+        setError(result.message || "Delete failed");
+        setDeleting(false);
+        return;
+      }
+      onDeleted();
+    } catch (err) {
+      setError("Couldn't reach the server. Please try again.");
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+        <h3 className="font-bold text-gray-900">Remove staff member?</h3>
+        <p className="mt-2 text-sm text-gray-500">
+          This will permanently remove{" "}
+          <span className="font-semibold text-gray-700">
+            {staffMember.name || staffMember.email}
+          </span>{" "}
+          and revoke their account access.
+        </p>
+        {error && (
+          <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
+            <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+            {error}
+          </div>
+        )}
+        <div className="mt-5 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-70"
+          >
+            {deleting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Removing…
+              </>
+            ) : (
+              "Remove"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OverviewTab({
+  fleet,
+  fleetLoading,
+  bookings,
+  bookingsLoading,
+  staffList,
+  staffLoading,
+  isAdmin,
+}) {
   const available = fleet.filter((c) => c.active).length;
   const pendingCount = bookings.filter((b) => b.status === "Pending").length;
   const activeBookings = bookings.filter(
@@ -558,6 +781,7 @@ function OverviewTab({ fleet, fleetLoading, bookings, bookingsLoading, isAdmin }
   const monthlyRevenue = bookings
     .filter((b) => b.status === "Approved")
     .reduce((sum, b) => sum + Number(b.amount || 0), 0);
+  const approvedStaffCount = staffList.filter((s) => s.status === "Approved").length;
 
   return (
     <div className="space-y-8">
@@ -582,8 +806,8 @@ function OverviewTab({ fleet, fleetLoading, bookings, bookingsLoading, isAdmin }
           <StatCard
             icon={Users}
             label="Staff Members"
-            value={staff.length}
-            sub="5 currently active"
+            value={staffLoading ? "…" : staffList.length}
+            sub={staffLoading ? undefined : `${approvedStaffCount} approved`}
             delay={160}
           />
         )}
@@ -957,45 +1181,196 @@ function BookingsTab({ bookings, loading, error, onRefresh, adminKey, requireKey
   );
 }
 
-function StaffTab() {
+function StaffTab({ staff, loading, error, onRefresh, adminKey, requireKey }) {
+  const [editingStaff, setEditingStaff] = useState(null);
+  const [deletingStaff, setDeletingStaff] = useState(null);
+  const [actioningEmail, setActioningEmail] = useState(null);
+  const [actionError, setActionError] = useState(null);
+
+  // Only show staff/admin accounts here, not customer signups
+  const staffOnly = staff.filter((s) => s.role !== "customer");
+
+  const openEdit = (member) => {
+    if (!requireKey()) return;
+    setEditingStaff(member);
+  };
+
+  const openDelete = (member) => {
+    if (!requireKey()) return;
+    setDeletingStaff(member);
+  };
+
+  const handleQuickStatus = async (member, status) => {
+    if (!requireKey()) return;
+    setActioningEmail(member.email);
+    setActionError(null);
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: UPDATE_STAFF_STATUS_ACTION,
+          key: adminKey,
+          email: member.email,
+          status,
+        }),
+      });
+      const result = await res.json();
+      if (!result.success) {
+        setActionError(result.message || "Failed to update status");
+      } else {
+        onRefresh();
+      }
+    } catch (err) {
+      setActionError("Couldn't reach the server. Please try again.");
+    } finally {
+      setActioningEmail(null);
+    }
+  };
+
   return (
     <div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
       <div className="flex items-center justify-between border-b border-gray-100 p-6">
-        <h3 className="font-bold text-gray-900">Team Directory</h3>
-        <span className="text-sm text-gray-500">{staff.length} members</span>
+        <div>
+          <h3 className="font-bold text-gray-900">Team Directory</h3>
+          <p className="text-sm text-gray-500">
+            {loading ? "Loading…" : `${staffOnly.length} members`}
+          </p>
+        </div>
       </div>
-      <div className="grid gap-5 p-6 sm:grid-cols-2 lg:grid-cols-3">
-        {staff.map((person) => (
-          <div
-            key={person.name}
-            className="rounded-2xl border border-gray-100 p-5"
-          >
-            <div className="flex items-start gap-3">
-              <img
-                src={person.image}
-                alt={person.name}
-                className="h-12 w-12 rounded-full object-cover"
-              />
-              <div className="min-w-0 flex-1">
-                <h4 className="truncate font-bold text-gray-900">
-                  {person.name}
-                </h4>
-                <p className="truncate text-xs text-gray-500">{person.role}</p>
+
+      {(error || actionError) && (
+        <div className="m-6 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          {error || actionError}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="grid gap-5 p-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-40 animate-pulse rounded-2xl bg-gray-100" />
+          ))}
+        </div>
+      ) : staffOnly.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-2 p-16 text-center">
+          <Users className="h-8 w-8 text-gray-300" />
+          <p className="text-sm text-gray-500">No staff accounts yet.</p>
+        </div>
+      ) : (
+        <div className="grid gap-5 p-6 sm:grid-cols-2 lg:grid-cols-3">
+          {staffOnly.map((person) => (
+            <div
+              key={person.email}
+              className="rounded-2xl border border-gray-100 p-5"
+            >
+              <div className="flex items-start gap-3">
+                <img
+                  src={FALLBACK_AVATAR}
+                  alt={person.name || person.email}
+                  className="h-12 w-12 rounded-full object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <h4 className="truncate font-bold text-gray-900">
+                    {person.name || "(no name)"}
+                  </h4>
+                  <p className="truncate text-xs capitalize text-gray-500">
+                    {person.role}
+                  </p>
+                </div>
+                <StatusPill
+                  label={person.status || "Approved"}
+                  styleMap={staffStatusStyle}
+                />
               </div>
-              <StatusPill label={person.status} styleMap={staffStatusStyle} />
+              <div className="mt-4 space-y-1.5 text-xs text-gray-500">
+                <p className="font-medium text-gray-400">
+                  {person.department || "—"}
+                </p>
+                {person.phone && (
+                  <p className="flex items-center gap-1.5">
+                    <Phone className="h-3.5 w-3.5" /> {person.phone}
+                  </p>
+                )}
+                <p className="flex items-center gap-1.5 truncate">
+                  <Mail className="h-3.5 w-3.5 shrink-0" /> {person.email}
+                </p>
+                {person.employeeId && (
+                  <p className="text-gray-400">ID: {person.employeeId}</p>
+                )}
+              </div>
+
+              {person.status === "Pending" && (
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={() => handleQuickStatus(person, "Approved")}
+                    disabled={actioningEmail === person.email}
+                    className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-emerald-50 py-2 text-xs font-semibold text-emerald-600 transition hover:bg-emerald-100 disabled:opacity-60"
+                  >
+                    {actioningEmail === person.email ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Check className="h-3 w-3" />
+                    )}
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleQuickStatus(person, "Rejected")}
+                    disabled={actioningEmail === person.email}
+                    className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-red-50 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-60"
+                  >
+                    {actioningEmail === person.email ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Ban className="h-3 w-3" />
+                    )}
+                    Reject
+                  </button>
+                </div>
+              )}
+
+              <div className="mt-2 flex gap-2">
+                <button
+                  onClick={() => openEdit(person)}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+                >
+                  <Pencil className="h-3.5 w-3.5" /> Edit
+                </button>
+                <button
+                  onClick={() => openDelete(person)}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-red-100 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                </button>
+              </div>
             </div>
-            <div className="mt-4 space-y-1.5 text-xs text-gray-500">
-              <p className="font-medium text-gray-400">{person.dept}</p>
-              <p className="flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5" /> {person.phone}
-              </p>
-              <p className="flex items-center gap-1.5 truncate">
-                <Mail className="h-3.5 w-3.5 shrink-0" /> {person.email}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {editingStaff && (
+        <StaffFormModal
+          staffMember={editingStaff}
+          adminKey={adminKey}
+          onClose={() => setEditingStaff(null)}
+          onSaved={() => {
+            setEditingStaff(null);
+            onRefresh();
+          }}
+        />
+      )}
+
+      {deletingStaff && (
+        <DeleteStaffModal
+          staffMember={deletingStaff}
+          adminKey={adminKey}
+          onClose={() => setDeletingStaff(null)}
+          onDeleted={() => {
+            setDeletingStaff(null);
+            onRefresh();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1008,7 +1383,7 @@ function AdminKeyModal({ onSubmit, onClose }) {
       <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
         <h3 className="font-bold text-gray-900">Admin key required</h3>
         <p className="mt-2 text-sm text-gray-500">
-          Enter your admin key to manage vehicles or bookings.
+          Enter your admin key to manage vehicles, bookings, or staff.
         </p>
         <input
           type="password"
@@ -1057,6 +1432,10 @@ export default function Dashboard() {
   const [bookingsLoading, setBookingsLoading] = useState(true);
   const [bookingsError, setBookingsError] = useState(null);
 
+  const [staffList, setStaffList] = useState([]);
+  const [staffLoading, setStaffLoading] = useState(true);
+  const [staffError, setStaffError] = useState(null);
+
   const [adminKey, setAdminKey] = useState(
     () => sessionStorage.getItem("mg_admin_key") || ""
   );
@@ -1098,9 +1477,32 @@ export default function Dashboard() {
     }
   };
 
+  // Pulls the Users sheet via getAllUsers() on the Apps Script side.
+  // Expects a response shaped like { success: true, users: [...] }.
+  const fetchStaff = async () => {
+    setStaffLoading(true);
+    setStaffError(null);
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=${GET_STAFF_ACTION}`);
+      const result = await res.json();
+      if (!result.success) {
+        setStaffError(result.message || "Failed to load staff");
+      } else {
+        setStaffList(result.users || []);
+      }
+    } catch (err) {
+      setStaffError("Couldn't reach the server. Please try again.");
+    } finally {
+      setStaffLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Staff don't need fleet data at all — skip that fetch entirely for them.
-    if (isAdmin) fetchFleet();
+    // Staff don't need fleet or user-management data at all — skip those fetches for them.
+    if (isAdmin) {
+      fetchFleet();
+      fetchStaff();
+    }
     fetchBookings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1125,6 +1527,8 @@ export default function Dashboard() {
         fleetLoading={fleetLoading}
         bookings={bookings}
         bookingsLoading={bookingsLoading}
+        staffList={staffList}
+        staffLoading={staffLoading}
         isAdmin={isAdmin}
       />
     ),
@@ -1150,7 +1554,18 @@ export default function Dashboard() {
         requireKey={requireKey}
       />
     ),
-    ...(isAdmin && { staff: <StaffTab /> }),
+    ...(isAdmin && {
+      staff: (
+        <StaffTab
+          staff={staffList}
+          loading={staffLoading}
+          error={staffError}
+          onRefresh={fetchStaff}
+          adminKey={adminKey}
+          requireKey={requireKey}
+        />
+      ),
+    }),
   };
 
   // Guard against a stale activeTab (e.g. staff account with "fleet" cached) — fall back safely.
@@ -1186,6 +1601,8 @@ export default function Dashboard() {
               const pendingCount =
                 item.id === "bookings"
                   ? bookings.filter((b) => b.status === "Pending").length
+                  : item.id === "staff"
+                  ? staffList.filter((s) => s.status === "Pending").length
                   : 0;
               return (
                 <button
