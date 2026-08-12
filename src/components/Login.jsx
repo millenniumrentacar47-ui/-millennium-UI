@@ -511,12 +511,7 @@ export default function Login() {
                       />
                       Remember me
                     </label>
-                    <Link
-                      to="/forgot-password"
-                      className="font-medium text-[#E53E3E] hover:underline"
-                    >
-                      Forgot password?
-                    </Link>
+                   
                   </div>
 
                   <button
