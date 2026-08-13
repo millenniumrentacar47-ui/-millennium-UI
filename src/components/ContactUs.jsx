@@ -11,6 +11,7 @@ import {
   Facebook,
   Instagram,
   Twitter,
+  ExternalLink,
 } from "lucide-react";
 
 const contactInfo = [
@@ -23,7 +24,7 @@ const contactInfo = [
   {
     icon: <Mail className="h-5 w-5" />,
     label: "Email Us",
-    value: "abhilashgomez@gmail.com",
+    value: "millenniumrentacar47@gmail.com",
     sub: "We reply within a few hours",
   },
   {
@@ -48,6 +49,12 @@ const subjects = [
   "Other",
 ];
 
+const GOOGLE_MAPS_DIRECTIONS_URL =
+  "https://www.google.com/maps/dir//Millennium+Group+Rent+A+Car,+1st+Floor,+Capital+Tower,+Kumarapuram,+Thiruvananthapuram,+Kerala+695011/@12.9859584,77.7551872,8788m/data=!3m1!1e3!4m8!4m7!1m0!1m5!1m1!1s0x3b05bdc736e6ee09:0xd5470bb53874ea21!2m2!1d76.9279914!2d8.5111438?entry=ttu";
+
+const GOOGLE_MAPS_EMBED_URL =
+  "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3945.9234123528!2d76.9279914!3d8.5111438!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b05bdc736e6ee09%3A0xd5470bb53874ea21!2sMillennium%20Group%20Rent%20A%20Car!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin";
+
 function useReveal(threshold = 0.15) {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -62,7 +69,7 @@ function useReveal(threshold = 0.15) {
           observer.disconnect();
         }
       },
-      { threshold },
+      { threshold }
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -234,39 +241,55 @@ export default function ContactUs() {
         <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:px-8">
           {/* Map / branch panel */}
           <div
-            className="cu-reveal relative overflow-hidden rounded-2xl bg-[#0F1115] text-white"
+            className="cu-reveal relative flex flex-col overflow-hidden rounded-2xl bg-[#0F1115] text-white"
             style={{
               opacity: formInView ? 1 : 0,
               transform: formInView ? "translateY(0)" : "translateY(24px)",
             }}
           >
-            <div className="relative h-64 w-full overflow-hidden sm:h-80">
-              <img
-                src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=900&h=700&fit=crop"
-                alt="Map of Millennium Group branch locations"
-                className="h-full w-full object-cover opacity-50"
+            {/* Embedded Interactive Google Map */}
+            <div className="relative h-72 w-full overflow-hidden sm:h-80">
+              <iframe
+                title="Millennium Group Rent A Car Location"
+                src={GOOGLE_MAPS_EMBED_URL}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="h-full w-full grayscale contrast-125 opacity-80 transition-all duration-500 hover:grayscale-0 hover:opacity-100"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0F1115] via-[#0F1115]/30 to-transparent" />
-              <div className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#E53E3E] shadow-lg shadow-red-900/40">
-                <MapPin className="h-5 w-5 text-white" />
-              </div>
             </div>
 
-            <div className="space-y-5 p-7">
+            <div className="flex-1 space-y-5 p-7">
               <div>
                 <h3 className="font-bold">Headquarters</h3>
-                <p className="text-sm text-white/60">
-                  Kumarapuram, Thiruvananthapuram, Kerala 695011
+                <p className="mt-1 text-sm text-white/60">
+                  1st Floor, Capital Tower, Kumarapuram, Thiruvananthapuram,
+                  Kerala 695011
                 </p>
+                <a
+                  href={GOOGLE_MAPS_DIRECTIONS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-red-400 transition hover:text-red-300 hover:underline"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Get Directions on Google Maps
+                </a>
               </div>
+
               <div className="h-px bg-white/10" />
+
               <div>
                 <h3 className="font-bold">Need help right now?</h3>
-                <p className="text-sm text-white/60">
+                <p className="mt-1 text-sm text-white/60">
                   Our support line is staffed around the clock for active
                   rentals and roadside assistance.
                 </p>
               </div>
+
               <div className="flex items-center gap-3 pt-2">
                 {[Facebook, Instagram, Twitter].map((Icon, i) => (
                   <a
