@@ -22,6 +22,7 @@ import {
   AlertCircle,
   Check,
   Ban,
+  UserCog,
 } from "lucide-react";
 
 const INR_FORMATTER = new Intl.NumberFormat("en-IN", {
@@ -32,7 +33,7 @@ const INR_FORMATTER = new Intl.NumberFormat("en-IN", {
 const formatINR = (v) => INR_FORMATTER.format(v);
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbxNa3Y0VCA624GgRHmAAo_bP6ZakNOIBSqwymfXS8sal5saJPW-gJ_6KAZBBcuFbeudcw/exec";
+  "https://script.google.com/macros/s/AKfycbxPFlYns1f4-Evy6-UW1XW4lJltrlKcHppqIsZqQQ7IMif90MFapVPrrkOrTkFUCcgGLQ/exec";
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=300&h=200&fit=crop";
@@ -48,6 +49,7 @@ const GET_STAFF_ACTION = "getUsers";
 const UPDATE_STAFF_ACTION = "updateUser";
 const DELETE_STAFF_ACTION = "deleteUser";
 const UPDATE_STAFF_STATUS_ACTION = "updateUserStatus";
+const ASSIGN_BOOKING_ACTION = "assignBooking";
 
 const ALL_NAV_ITEMS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -497,15 +499,6 @@ function DeleteConfirmModal({ car, onClose, onDeleted, adminKey }) {
 }
 
 // ---------- Staff: edit form modal ----------
-const emptyStaffForm = {
-  name: "",
-  role: "staff",
-  employeeId: "",
-  phone: "",
-  department: "",
-  status: "Pending",
-};
-
 function StaffFormModal({ staffMember, onClose, onSaved, adminKey }) {
   const [form, setForm] = useState({
     name: staffMember.name || "",
@@ -1041,9 +1034,27 @@ function FleetTab({ fleet, loading, error, onRefresh, adminKey, requireKey }) {
   );
 }
 
-function BookingsTab({ bookings, loading, error, onRefresh, adminKey, requireKey }) {
+// Bookings tab. Admins can approve/reject and assign a booking to any
+// approved staff member via a dropdown. Non-admin staff see who a booking
+// is assigned to (read-only), with their own assignments highlighted.
+function BookingsTab({
+  bookings,
+  loading,
+  error,
+  onRefresh,
+  adminKey,
+  requireKey,
+  staffList,
+  isAdmin,
+  currentUserEmail,
+}) {
   const [actioningId, setActioningId] = useState(null);
+  const [assigningId, setAssigningId] = useState(null);
   const [actionError, setActionError] = useState(null);
+
+  const assignableStaff = (staffList || []).filter(
+    (s) => s.role !== "customer" && s.status === "Approved"
+  );
 
   const handleStatusChange = async (id, status) => {
     if (!requireKey()) return;
@@ -1068,10 +1079,42 @@ function BookingsTab({ bookings, loading, error, onRefresh, adminKey, requireKey
     }
   };
 
+  const handleAssign = async (id, staffEmail) => {
+    if (!requireKey()) return;
+    const staffMember = assignableStaff.find((s) => s.email === staffEmail);
+    setAssigningId(id);
+    setActionError(null);
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: ASSIGN_BOOKING_ACTION,
+          key: adminKey,
+          id,
+          staffEmail: staffEmail || "",
+          staffName: staffMember ? staffMember.name : "",
+        }),
+      });
+      const result = await res.json();
+      if (!result.success) {
+        setActionError(result.message || "Failed to assign booking");
+      } else {
+        onRefresh();
+      }
+    } catch (err) {
+      setActionError("Couldn't reach the server. Please try again.");
+    } finally {
+      setAssigningId(null);
+    }
+  };
+
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
       <div className="flex items-center justify-between border-b border-gray-100 p-6">
-        <h3 className="font-bold text-gray-900">All Bookings</h3>
+        <h3 className="font-bold text-gray-900">
+          {isAdmin ? "All Bookings" : "My Bookings"}
+        </h3>
         <span className="text-sm text-gray-500">
           {loading ? "Loading…" : `${bookings.length} total`}
         </span>
@@ -1093,7 +1136,9 @@ function BookingsTab({ bookings, loading, error, onRefresh, adminKey, requireKey
       ) : bookings.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-2 p-16 text-center">
           <Calendar className="h-8 w-8 text-gray-300" />
-          <p className="text-sm text-gray-500">No bookings yet.</p>
+          <p className="text-sm text-gray-500">
+            {isAdmin ? "No bookings yet." : "No bookings assigned to you yet."}
+          </p>
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -1108,71 +1153,109 @@ function BookingsTab({ bookings, loading, error, onRefresh, adminKey, requireKey
                 <th className="px-6 py-3 font-medium">Drop-off</th>
                 <th className="px-6 py-3 font-medium">Amount</th>
                 <th className="px-6 py-3 font-medium">Status</th>
+                <th className="px-6 py-3 font-medium">Assigned To</th>
                 <th className="px-6 py-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {bookings.map((b) => (
-                <tr
-                  key={b.id}
-                  className="border-b border-gray-50 last:border-0 hover:bg-gray-50"
-                >
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    BK-{String(b.id).padStart(4, "0")}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">{b.customerName}</td>
-                  <td className="px-6 py-4">
-                    <a
-                      href={`tel:${String(b.phone).replace(/\s+/g, "")}`}
-                      className="flex items-center gap-1.5 text-gray-500 transition hover:text-[#E53E3E]"
-                    >
-                      <Phone className="h-3.5 w-3.5" />
-                      {b.phone}
-                    </a>
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">{b.carName}</td>
-                  <td className="px-6 py-4 text-gray-500">{b.pickup}</td>
-                  <td className="px-6 py-4 text-gray-500">{b.dropoff}</td>
-                  <td className="px-6 py-4 font-semibold text-gray-900">
-                    {formatINR(b.amount)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusPill label={b.status} styleMap={bookingStatusStyle} />
-                  </td>
-                  <td className="px-6 py-4">
-                    {b.status === "Pending" ? (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleStatusChange(b.id, "Approved")}
-                          disabled={actioningId === b.id}
-                          className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-600 transition hover:bg-emerald-100 disabled:opacity-60"
-                        >
-                          {actioningId === b.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Check className="h-3 w-3" />
+              {bookings.map((b) => {
+                const isMine =
+                  currentUserEmail && b.assignedEmail === currentUserEmail;
+                return (
+                  <tr
+                    key={b.id}
+                    className="border-b border-gray-50 last:border-0 hover:bg-gray-50"
+                  >
+                    <td className="px-6 py-4 font-medium text-gray-900">
+                      BK-{String(b.id).padStart(4, "0")}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">{b.customerName}</td>
+                    <td className="px-6 py-4">
+                      <a
+                        href={`tel:${String(b.phone).replace(/\s+/g, "")}`}
+                        className="flex items-center gap-1.5 text-gray-500 transition hover:text-[#E53E3E]"
+                      >
+                        <Phone className="h-3.5 w-3.5" />
+                        {b.phone}
+                      </a>
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">{b.carName}</td>
+                    <td className="px-6 py-4 text-gray-500">{b.pickup}</td>
+                    <td className="px-6 py-4 text-gray-500">{b.dropoff}</td>
+                    <td className="px-6 py-4 font-semibold text-gray-900">
+                      {formatINR(b.amount)}
+                    </td>
+                    <td className="px-6 py-4">
+                      <StatusPill label={b.status} styleMap={bookingStatusStyle} />
+                    </td>
+                    <td className="px-6 py-4">
+                      {isAdmin ? (
+                        <div className="relative">
+                          <select
+                            value={b.assignedEmail || ""}
+                            onChange={(e) => handleAssign(b.id, e.target.value)}
+                            disabled={assigningId === b.id}
+                            className="w-36 rounded-lg border border-gray-200 py-1.5 pl-2 pr-6 text-xs outline-none focus:border-[#E53E3E] disabled:opacity-60"
+                          >
+                            <option value="">Unassigned</option>
+                            {assignableStaff.map((s) => (
+                              <option key={s.email} value={s.email}>
+                                {s.name || s.email}
+                              </option>
+                            ))}
+                          </select>
+                          {assigningId === b.id && (
+                            <Loader2 className="absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 animate-spin text-gray-400" />
                           )}
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(b.id, "Rejected")}
-                          disabled={actioningId === b.id}
-                          className="flex items-center gap-1 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-60"
+                        </div>
+                      ) : b.assignedName || b.assignedEmail ? (
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-xs font-medium ${
+                            isMine ? "text-[#E53E3E]" : "text-gray-600"
+                          }`}
                         >
-                          {actioningId === b.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Ban className="h-3 w-3" />
-                          )}
-                          Reject
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-gray-400">—</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                          <UserCog className="h-3.5 w-3.5" />
+                          {isMine ? "You" : b.assignedName || b.assignedEmail}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">Unassigned</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {b.status === "Pending" ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleStatusChange(b.id, "Approved")}
+                            disabled={actioningId === b.id}
+                            className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-600 transition hover:bg-emerald-100 disabled:opacity-60"
+                          >
+                            {actioningId === b.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Check className="h-3 w-3" />
+                            )}
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(b.id, "Rejected")}
+                            disabled={actioningId === b.id}
+                            className="flex items-center gap-1 rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-60"
+                          >
+                            {actioningId === b.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Ban className="h-3 w-3" />
+                            )}
+                            Reject
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -1479,6 +1562,7 @@ export default function Dashboard() {
 
   // Pulls the Users sheet via getAllUsers() on the Apps Script side.
   // Expects a response shaped like { success: true, users: [...] }.
+  // Staff also fetch this (read-only) so bookings can show assignee names.
   const fetchStaff = async () => {
     setStaffLoading(true);
     setStaffError(null);
@@ -1498,14 +1582,20 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    // Staff don't need fleet or user-management data at all — skip those fetches for them.
+    // Staff don't need fleet or user-management data, but they do need the
+    // staff list (read-only) so the Bookings tab can show assignee names.
     if (isAdmin) {
       fetchFleet();
-      fetchStaff();
     }
+    fetchStaff();
     fetchBookings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Staff only ever see bookings assigned to them; admins see everything.
+  const visibleBookings = isAdmin
+    ? bookings
+    : bookings.filter((b) => b.assignedEmail === currentUser?.email);
 
   // Ensures an admin key is set before any write action; opens a prompt if missing.
   const requireKey = () => {
@@ -1525,7 +1615,7 @@ export default function Dashboard() {
       <OverviewTab
         fleet={fleet}
         fleetLoading={fleetLoading}
-        bookings={bookings}
+        bookings={visibleBookings}
         bookingsLoading={bookingsLoading}
         staffList={staffList}
         staffLoading={staffLoading}
@@ -1546,12 +1636,15 @@ export default function Dashboard() {
     }),
     bookings: (
       <BookingsTab
-        bookings={bookings}
+        bookings={visibleBookings}
         loading={bookingsLoading}
         error={bookingsError}
         onRefresh={fetchBookings}
         adminKey={adminKey}
         requireKey={requireKey}
+        staffList={staffList}
+        isAdmin={isAdmin}
+        currentUserEmail={currentUser?.email}
       />
     ),
     ...(isAdmin && {
@@ -1600,7 +1693,7 @@ export default function Dashboard() {
               const active = safeActiveTab === item.id;
               const pendingCount =
                 item.id === "bookings"
-                  ? bookings.filter((b) => b.status === "Pending").length
+                  ? visibleBookings.filter((b) => b.status === "Pending").length
                   : item.id === "staff"
                   ? staffList.filter((s) => s.status === "Pending").length
                   : 0;
@@ -1724,7 +1817,7 @@ export default function Dashboard() {
               </div>
               <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 text-gray-500 transition hover:bg-gray-50">
                 <Bell className="h-4 w-4" />
-                {bookings.filter((b) => b.status === "Pending").length > 0 && (
+                {visibleBookings.filter((b) => b.status === "Pending").length > 0 && (
                   <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#E53E3E]" />
                 )}
               </button>

@@ -26,7 +26,7 @@ function formatINR(value) {
 }
 
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbxNa3Y0VCA624GgRHmAAo_bP6ZakNOIBSqwymfXS8sal5saJPW-gJ_6KAZBBcuFbeudcw/exec";
+  "https://script.google.com/macros/s/AKfycbxPFlYns1f4-Evy6-UW1XW4lJltrlKcHppqIsZqQQ7IMif90MFapVPrrkOrTkFUCcgGLQ/exec";
 
 // WhatsApp number bookings get sent to (country code + number, no + or spaces)
 const WHATSAPP_NUMBER = "919947000500";

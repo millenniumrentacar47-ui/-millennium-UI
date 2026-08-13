@@ -16,7 +16,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-const APPS_SCRIPT_URL ="https://script.google.com/macros/s/AKfycbxNa3Y0VCA624GgRHmAAo_bP6ZakNOIBSqwymfXS8sal5saJPW-gJ_6KAZBBcuFbeudcw/exec"
+const APPS_SCRIPT_URL ="https://script.google.com/macros/s/AKfycbxPFlYns1f4-Evy6-UW1XW4lJltrlKcHppqIsZqQQ7IMif90MFapVPrrkOrTkFUCcgGLQ/exec"
 const features = [
   { icon: <Car className="h-4 w-4" />, label: "50+ Vehicles" },
   { icon: <Users className="h-4 w-4" />, label: "5000+ Customers" },
