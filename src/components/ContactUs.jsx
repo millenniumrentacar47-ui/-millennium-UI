@@ -24,7 +24,7 @@ const contactInfo = [
   {
     icon: <Mail className="h-5 w-5" />,
     label: "Email Us",
-    value: "millenniumrentacar47@gmail.com",
+    value: "millennium@gmail.com",
     sub: "We reply within a few hours",
   },
   {
