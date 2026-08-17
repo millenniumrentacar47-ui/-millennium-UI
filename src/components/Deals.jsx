@@ -3,7 +3,6 @@ import { ArrowRight, Clock, Copy, Check, Flame, Tag } from "lucide-react";
 import DealEnquiryModal from "./DealEnquiryModal";
 
 import PremiumCarEnquiryModal from "./PremiumCarEnquiryModal";
-#tested
 const deals = [
   {
     id: "weekly",
