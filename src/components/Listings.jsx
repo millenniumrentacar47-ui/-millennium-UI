@@ -400,7 +400,7 @@ function BookingModal({ car, onClose }) {
                 <span>{formatINR(subtotal)}</span>
               </div>
               <div className="flex justify-between text-gray-600">
-                <span>Service fee</span>
+                <span></span>
                 <span>{formatINR(serviceFee)}</span>
               </div>
               <div className="flex justify-between border-t border-gray-200 pt-2 text-base font-bold text-gray-900">

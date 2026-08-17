@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Clock, Copy, Check, Tag } from "lucide-react";
-import DealEnquiryModal from "./Dealenquirymodal.jsx";
+import { ArrowRight, Clock, Copy, Check, Flame, Tag } from "lucide-react";
+import DealEnquiryModal from "./DealEnquiryModal";
+import PremiumCarEnquiryModal from "./PremiumCarEnquiryModal";
 
 const deals = [
   {
     id: "weekly",
     badge: "Limited Time",
     title: "Weekly Specials",
-    desc: "Get up to off on premium sedans and SUVs every week. Book early to secure the best rates!",
-    discount: "Grab offers",
+    desc: "Get off on premium sedans and SUVs every week. Book early to secure the best rates!",
+    discount: "Grab offer",
     code: "WEEKLY30",
     claimed: 64,
     image:
@@ -21,13 +22,27 @@ const deals = [
     badge: "Exclusive",
     title: "Weekend / Monthly Discounts",
     desc: "Plan your weekend getaway or a monthly rental with our special rates.",
-    discount: "Grab offers",
+    discount: "Grab offer",
     code: "WKND49",
     claimed: 41,
     image:
       "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=500&fit=crop",
     theme: "dark",
     endsInHours: 30,
+  },
+  {
+    id: "premium",
+    isPremium: true,
+    badge: "Premium Fleet",
+    title: "Premium Cars Enquire",
+    desc: "Looking for something upscale? Enquire about our premium sedans, SUVs, and vans — tell us your dates and we'll line up the right vehicle.",
+    discount: "VIP",
+    code: "PREMIUM",
+    claimed: 88,
+    image:
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&h=500&fit=crop",
+    theme: "amber",
+    endsInHours: 9,
   },
 ];
 
@@ -47,6 +62,14 @@ const themeStyles = {
     button: "bg-[#E53E3E] text-white hover:bg-red-700",
     ring: "ring-gray-400",
     bar: "bg-[#E53E3E]",
+  },
+  amber: {
+    overlay: "from-amber-600/90 to-orange-800/85",
+    badgeText: "text-amber-100",
+    bodyText: "text-amber-50",
+    button: "bg-white text-amber-700 hover:bg-amber-50",
+    ring: "ring-amber-300",
+    bar: "bg-white",
   },
 };
 
@@ -126,6 +149,7 @@ function CopyCode({ code }) {
 function DealCard({ deal, index, inView, onViewOffer }) {
   const countdown = useCountdown(deal.endsInHours);
   const theme = themeStyles[deal.theme];
+  const isPremium = deal.theme === "amber";
 
   return (
     <div
@@ -159,6 +183,7 @@ function DealCard({ deal, index, inView, onViewOffer }) {
         <span
           className={`mb-2 flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wider ${theme.badgeText}`}
         >
+          {isPremium && <Flame className="h-3.5 w-3.5" />}
           {deal.badge}
         </span>
         <h3 className="mb-3 text-3xl font-bold text-white">{deal.title}</h3>
@@ -189,9 +214,10 @@ function DealCard({ deal, index, inView, onViewOffer }) {
             onClick={() => onViewOffer(deal)}
             className={`flex w-fit items-center gap-2 rounded-xl px-6 py-3 font-semibold transition-all active:scale-[0.97] ${theme.button}`}
           >
-            View Offer <ArrowRight className="h-4 w-4" />
+            {isPremium ? "Enquire Now" : "View Offer"}{" "}
+            <ArrowRight className="h-4 w-4" />
           </button>
-          <CopyCode code={deal.code} />
+          {/* <CopyCode code={deal.code} /> */}
         </div>
       </div>
     </div>
@@ -201,6 +227,18 @@ function DealCard({ deal, index, inView, onViewOffer }) {
 export default function Deals() {
   const [sectionRef, inView] = useReveal(0.15);
   const [selectedDeal, setSelectedDeal] = useState(null);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+
+  const regularDeals = deals.filter((d) => !d.isPremium);
+  const premiumDeal = deals.find((d) => d.isPremium);
+
+  const handleViewOffer = (deal) => {
+    if (deal.isPremium) {
+      setIsPremiumModalOpen(true);
+    } else {
+      setSelectedDeal(deal);
+    }
+  };
 
   return (
     <section id="deals" ref={sectionRef} className="bg-white py-20">
@@ -231,22 +269,39 @@ export default function Deals() {
         </div>
 
         <div className="grid gap-8 md:grid-cols-2">
-          {deals.map((deal, i) => (
+          {regularDeals.map((deal, i) => (
             <DealCard
               key={deal.id}
               deal={deal}
               index={i}
               inView={inView}
-              onViewOffer={setSelectedDeal}
+              onViewOffer={handleViewOffer}
             />
           ))}
         </div>
+
+        {/* Premium Cars gets its own full-width spotlight row */}
+        {premiumDeal && (
+          <div className="mt-8">
+            <DealCard
+              deal={premiumDeal}
+              index={regularDeals.length}
+              inView={inView}
+              onViewOffer={handleViewOffer}
+            />
+          </div>
+        )}
       </div>
 
       <DealEnquiryModal
         isOpen={!!selectedDeal}
         onClose={() => setSelectedDeal(null)}
         deal={selectedDeal}
+      />
+
+      <PremiumCarEnquiryModal
+        isOpen={isPremiumModalOpen}
+        onClose={() => setIsPremiumModalOpen(false)}
       />
     </section>
   );
