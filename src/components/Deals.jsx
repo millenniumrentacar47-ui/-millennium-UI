@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Clock, Copy, Check, Tag } from "lucide-react";
-import DealEnquiryModal from "./DealEnquiryModal";
+import DealEnquiryModal from "./Dealenquirymodal.jsx";
 
 const deals = [
   {
