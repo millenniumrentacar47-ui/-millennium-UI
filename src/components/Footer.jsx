@@ -159,6 +159,10 @@ export default function Footer() {
               </a>
             </div>
           </div>
+          <p className="mt-4 text-center text-xs text-gray-500">
+            Powered by{" "}
+            <span className="font-semibold text-gray-400">Careergize LLP</span>
+          </p>
         </div>
       </div>
     </footer>
