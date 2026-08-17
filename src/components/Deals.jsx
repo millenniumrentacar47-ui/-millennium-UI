@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Clock, Copy, Check, Flame, Tag } from "lucide-react";
+import { ArrowRight, Clock, Copy, Check, Tag } from "lucide-react";
+import DealEnquiryModal from "./DealEnquiryModal";
 
 const deals = [
   {
     id: "weekly",
     badge: "Limited Time",
     title: "Weekly Specials",
-    desc: "Get up to 30% off on premium sedans and SUVs every week. Book early to secure the best rates!",
-    discount: "30%",
+    desc: "Get up to off on premium sedans and SUVs every week. Book early to secure the best rates!",
+    discount: "Grab offers",
     code: "WEEKLY30",
     claimed: 64,
     image:
@@ -18,28 +19,15 @@ const deals = [
   {
     id: "weekend",
     badge: "Exclusive",
-    title: "Weekend Discounts",
-    desc: "Plan your weekend getaway with our special rates. Economy cars starting at just $49/day!",
-    discount: "$49/day",
+    title: "Weekend / Monthly Discounts",
+    desc: "Plan your weekend getaway or a monthly rental with our special rates.",
+    discount: "Grab offers",
     code: "WKND49",
     claimed: 41,
     image:
       "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=500&fit=crop",
     theme: "dark",
     endsInHours: 30,
-  },
-  {
-    id: "flash",
-    badge: "Premium Cars Enquire",
-    title: "24-Hour Flash Drop",
-    desc: "One day only — our entire SUV lineup at electric-fast pricing. Once it's gone, it's gone.",
-    discount: "40%",
-    code: "FLASH40",
-    claimed: 88,
-    image:
-      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&h=500&fit=crop",
-    theme: "amber",
-    endsInHours: 9,
   },
 ];
 
@@ -59,14 +47,6 @@ const themeStyles = {
     button: "bg-[#E53E3E] text-white hover:bg-red-700",
     ring: "ring-gray-400",
     bar: "bg-[#E53E3E]",
-  },
-  amber: {
-    overlay: "from-amber-600/90 to-orange-800/85",
-    badgeText: "text-amber-100",
-    bodyText: "text-amber-50",
-    button: "bg-white text-amber-700 hover:bg-amber-50",
-    ring: "ring-amber-300",
-    bar: "bg-white",
   },
 };
 
@@ -113,7 +93,7 @@ function useReveal(threshold = 0.2) {
   return [ref, inView];
 }
 
-function CopyCode({ code, theme }) {
+function CopyCode({ code }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async (e) => {
@@ -143,10 +123,9 @@ function CopyCode({ code, theme }) {
   );
 }
 
-function DealCard({ deal, index, inView }) {
+function DealCard({ deal, index, inView, onViewOffer }) {
   const countdown = useCountdown(deal.endsInHours);
   const theme = themeStyles[deal.theme];
-  const isFlash = deal.theme === "amber";
 
   return (
     <div
@@ -180,7 +159,6 @@ function DealCard({ deal, index, inView }) {
         <span
           className={`mb-2 flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wider ${theme.badgeText}`}
         >
-          {isFlash && <Flame className="h-3.5 w-3.5" />}
           {deal.badge}
         </span>
         <h3 className="mb-3 text-3xl font-bold text-white">{deal.title}</h3>
@@ -208,11 +186,12 @@ function DealCard({ deal, index, inView }) {
 
         <div className="flex flex-wrap items-center gap-3">
           <button
+            onClick={() => onViewOffer(deal)}
             className={`flex w-fit items-center gap-2 rounded-xl px-6 py-3 font-semibold transition-all active:scale-[0.97] ${theme.button}`}
           >
             View Offer <ArrowRight className="h-4 w-4" />
           </button>
-          <CopyCode code={deal.code} theme={deal.theme} />
+          <CopyCode code={deal.code} />
         </div>
       </div>
     </div>
@@ -221,6 +200,7 @@ function DealCard({ deal, index, inView }) {
 
 export default function Deals() {
   const [sectionRef, inView] = useReveal(0.15);
+  const [selectedDeal, setSelectedDeal] = useState(null);
 
   return (
     <section id="deals" ref={sectionRef} className="bg-white py-20">
@@ -245,22 +225,29 @@ export default function Deals() {
             Discover Our Exclusive Deals
           </h2>
           <p className="mx-auto max-w-2xl text-gray-600">
-            Save big with our limited-time promotions and seasonal offers — grab
-            a code below before it's gone.
+            Save big with our limited-time promotions — grab a code below and
+            let us know you're interested.
           </p>
         </div>
 
         <div className="grid gap-8 md:grid-cols-2">
-          {deals.slice(0, 2).map((deal, i) => (
-            <DealCard key={deal.id} deal={deal} index={i} inView={inView} />
+          {deals.map((deal, i) => (
+            <DealCard
+              key={deal.id}
+              deal={deal}
+              index={i}
+              inView={inView}
+              onViewOffer={setSelectedDeal}
+            />
           ))}
         </div>
-
-        {/* Flash sale gets its own full-width spotlight row */}
-        <div className="mt-8">
-          <DealCard deal={deals[2]} index={2} inView={inView} />
-        </div>
       </div>
+
+      <DealEnquiryModal
+        isOpen={!!selectedDeal}
+        onClose={() => setSelectedDeal(null)}
+        deal={selectedDeal}
+      />
     </section>
   );
 }
