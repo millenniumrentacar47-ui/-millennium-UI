@@ -30,7 +30,7 @@ const deals = [
   },
   {
     id: "flash",
-    badge: "Flash Sale",
+    badge: "Premium Cars Enquire",
     title: "24-Hour Flash Drop",
     desc: "One day only — our entire SUV lineup at electric-fast pricing. Once it's gone, it's gone.",
     discount: "40%",
@@ -104,7 +104,7 @@ function useReveal(threshold = 0.2) {
           observer.disconnect();
         }
       },
-      { threshold }
+      { threshold },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -245,8 +245,8 @@ export default function Deals() {
             Discover Our Exclusive Deals
           </h2>
           <p className="mx-auto max-w-2xl text-gray-600">
-            Save big with our limited-time promotions and seasonal offers —
-            grab a code below before it's gone.
+            Save big with our limited-time promotions and seasonal offers — grab
+            a code below before it's gone.
           </p>
         </div>
 

@@ -14,7 +14,7 @@ export default function Footer() {
   const quickLinks = [
     "Home",
     "About Us",
-    "Listings",
+    "Fleet-Available",
     "How it Works",
     "Blog",
     "Contact",

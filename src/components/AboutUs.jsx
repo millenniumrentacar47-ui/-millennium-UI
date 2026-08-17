@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import gomez from "../assets/gomez.jpg";
+import EnquiryModal from "./EnquiryModal";
 import {
   ShieldCheck,
   Award,
@@ -225,6 +226,8 @@ function useScrollProgress() {
 export default function AboutUs() {
   const [statsRef, statsInView] = useReveal(0.4);
   const [timelineRef, timelineProgress] = useScrollProgress();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState("");
 
   return (
     <main className="bg-white">
@@ -370,7 +373,7 @@ export default function AboutUs() {
             {services.map((service, i) => (
               <Reveal
                 key={service.title}
-                className="rounded-2xl border border-gray-100 bg-white p-7 shadow-sm"
+                className="rounded-2xl border border-gray-100 bg-white p-7 shadow-sm flex flex-col"
                 style={{ transitionDelay: `${i * 90}ms` }}
               >
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-[#E53E3E]">
@@ -379,9 +382,18 @@ export default function AboutUs() {
                 <h3 className="mb-2 font-bold text-gray-900">
                   {service.title}
                 </h3>
-                <p className="text-sm leading-relaxed text-gray-600">
+                <p className="text-sm leading-relaxed text-gray-600 flex-1">
                   {service.desc}
                 </p>
+                <button
+                  onClick={() => {
+                    setSelectedService(service.title);
+                    setIsModalOpen(true);
+                  }}
+                  className="mt-4 rounded-lg bg-[#E53E3E] px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-[#E53E3E]/20 active:scale-[0.98]"
+                >
+                  For More Details
+                </button>
               </Reveal>
             ))}
           </div>
@@ -520,10 +532,12 @@ export default function AboutUs() {
                 Founder & Managing Director
               </p>
               <p className="text-sm leading-relaxed text-gray-600">
-                Guiding Millennium Group with personal accountability and high
-                service standards across mobility, construction, and real estate
-                — ensuring every client relationship reflects the same trust the
-                group was built on 25+ years ago.
+                Guiding Millennium Group with unwavering personal accountability
+                and uncompromising service standards. Across mobility,
+                construction, and real estate, he drives a forward-looking
+                vision while ensuring every client engagement is anchored in the
+                foundational trust built over 25+ years of operational
+                excellence.
               </p>
             </div>
           </Reveal>
@@ -596,6 +610,12 @@ export default function AboutUs() {
           </div>
         </Reveal>
       </section>
+
+      <EnquiryModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        serviceTitle={selectedService}
+      />
     </main>
   );
 }

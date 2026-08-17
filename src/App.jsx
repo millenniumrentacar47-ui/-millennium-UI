@@ -2,6 +2,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import AboutPage from "./pages/AboutPage";
+import FleetAvailable from "./pages/FleetAvailable";
 import ContactUs from "./components/ContactUs";
 import Login from "./components/Login";
 import Registration from "./components/Registration";
@@ -25,6 +26,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/fleet-available" element={<FleetAvailable />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Registration />} />

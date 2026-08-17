@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import cars from "../assets/cars.jpg";
 
 /**
@@ -136,7 +137,10 @@ export default function CinematicHero() {
       <div className="pointer-events-none absolute inset-0 z-20 [box-shadow:inset_0_0_18vw_6vw_rgba(0,0,0,0.85)]" />
 
       {/* Background scene */}
-      <div className="relative w-full" style={{ aspectRatio: "21 / 9", minHeight: "78vh" }}>
+      <div
+        className="relative w-full"
+        style={{ aspectRatio: "21 / 9", minHeight: "78vh" }}
+      >
         <img
           src={cars}
           alt="Car driving through a darkened scene"
@@ -146,26 +150,52 @@ export default function CinematicHero() {
         <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0D]/60 via-transparent to-[#0B0B0D]/60" />
 
         {/* Headlight motion trail */}
-        <div
-          className="chf-trail absolute left-0 top-[58%] z-10 h-[2px] -translate-y-1/2 bg-gradient-to-r from-transparent via-[#FFB648] to-transparent blur-[1px]"
-        />
+        <div className="chf-trail absolute left-0 top-[58%] z-10 h-[2px] -translate-y-1/2 bg-gradient-to-r from-transparent via-[#FFB648] to-transparent blur-[1px]" />
 
         {/* Driving car silhouette */}
         <div className="chf-car absolute left-1/2 top-[52%] z-10 w-[34vw] max-w-[420px] -translate-y-1/2">
           <div className="relative">
             <div className="absolute -inset-6 rounded-full bg-[#FFB648]/20 blur-2xl" />
-            <svg viewBox="0 0 240 90" className="relative w-full drop-shadow-[0_18px_24px_rgba(0,0,0,0.6)]">
-              <ellipse cx="120" cy="80" rx="100" ry="6" fill="black" opacity="0.35" />
+            <svg
+              viewBox="0 0 240 90"
+              className="relative w-full drop-shadow-[0_18px_24px_rgba(0,0,0,0.6)]"
+            >
+              <ellipse
+                cx="120"
+                cy="80"
+                rx="100"
+                ry="6"
+                fill="black"
+                opacity="0.35"
+              />
               <path
                 d="M18 60 C18 48 30 40 46 38 L62 24 C68 18 78 14 90 14 L150 14 C162 14 172 18 178 26 L194 40 C210 42 222 50 222 60 L222 62 C222 68 216 72 210 72 L24 72 C18 72 18 68 18 62 Z"
                 fill="#16171B"
                 stroke="#3a3c42"
                 strokeWidth="1.5"
               />
-              <path d="M92 18 L150 18 L172 38 L78 38 Z" fill="#0B0B0D" opacity="0.7" />
-              <circle cx="62" cy="72" r="14" fill="#0B0B0D" stroke="#55575e" strokeWidth="2" />
+              <path
+                d="M92 18 L150 18 L172 38 L78 38 Z"
+                fill="#0B0B0D"
+                opacity="0.7"
+              />
+              <circle
+                cx="62"
+                cy="72"
+                r="14"
+                fill="#0B0B0D"
+                stroke="#55575e"
+                strokeWidth="2"
+              />
               <circle cx="62" cy="72" r="5" fill="#55575e" />
-              <circle cx="180" cy="72" r="14" fill="#0B0B0D" stroke="#55575e" strokeWidth="2" />
+              <circle
+                cx="180"
+                cy="72"
+                r="14"
+                fill="#0B0B0D"
+                stroke="#55575e"
+                strokeWidth="2"
+              />
               <circle cx="180" cy="72" r="5" fill="#55575e" />
               {/* headlight */}
               <ellipse cx="218" cy="48" rx="6" ry="4" fill="#FFB648" />
@@ -219,7 +249,7 @@ export default function CinematicHero() {
             className="chf-display chf-fade-up text-[15vw] leading-[0.85] text-[#F5F3EE] sm:text-7xl md:text-8xl lg:text-9xl"
             style={{ animationDelay: "1.5s" }}
           >
-            RENT A CAR FOR 
+            RENT A CAR FOR
             <span className="block text-[#FFB648]">YOUR NEXT TRIP</span>
           </h1>
 
@@ -227,20 +257,26 @@ export default function CinematicHero() {
             className="chf-fade-up mt-5 max-w-md text-sm text-[#F5F3EE]/70 sm:text-base"
             style={{ animationDelay: "1.8s" }}
           >
-            Pick up the keys, hit the open road, and let the story write
-            itself. Premium cars, ready whenever your next take begins.
+            Pick up the keys, hit the open road, and let the story write itself.
+            Premium cars, ready whenever your next take begins.
           </p>
 
           <div
             className="chf-fade-up mt-8 flex flex-col items-center gap-3 sm:flex-row"
             style={{ animationDelay: "2s" }}
           >
-            <button className="rounded-sm bg-[#FFB648] px-7 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#0B0B0D] transition hover:bg-[#ffc874] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFB648]">
+            <Link
+              to="/fleet-available"
+              className="rounded-sm bg-[#FFB648] px-7 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#0B0B0D] transition hover:bg-[#ffc874] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFB648]"
+            >
               Start Your Trip
-            </button>
-            <button className="rounded-sm border border-[#F5F3EE]/30 px-7 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#F5F3EE] transition hover:border-[#F5F3EE]/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F5F3EE]">
+            </Link>
+            <Link
+              to="/fleet-available"
+              className="rounded-sm border border-[#F5F3EE]/30 px-7 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#F5F3EE] transition hover:border-[#F5F3EE]/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F5F3EE]"
+            >
               View the Fleet
-            </button>
+            </Link>
           </div>
         </div>
       </div>
