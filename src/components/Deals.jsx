@@ -20,7 +20,7 @@ const deals = [
   {
     id: "weekend",
     badge: "Exclusive",
-    title: "Weekend / Monthly Discounts",
+    title: "Monthly Discounts",
     desc: "Plan your weekend getaway or a monthly rental with our special rates.",
     discount: "Grab offer",
     code: "WKND49",

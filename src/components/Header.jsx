@@ -9,7 +9,7 @@ export default function Header() {
 
   const navItems = [
     "Home",
-    "Fleet-Available",
+    "Our Fleet",
     "How it Works",
     "About Us",
     "Contact",
@@ -48,7 +48,7 @@ export default function Header() {
                     ? "/contact"
                     : item === "Login"
                       ? "/login"
-                    : item === "Fleet-Available"
+                    : item === "Our Fleet"
                       ? "/#listings"
                       : item === "Home"
                         ? "/"
@@ -98,7 +98,7 @@ export default function Header() {
                     ? "/contact"
                     : item === "Login"
                       ? "/login"
-                    : item === "Fleet-Available"
+                    : item === "Our Fleet"
                       ? "/#listings"
                       : item === "Home"
                         ? "/"

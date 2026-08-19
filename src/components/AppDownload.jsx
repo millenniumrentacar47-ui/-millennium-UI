@@ -28,10 +28,10 @@ export default function FinancingBanner() {
             Choose from flexible financing options with competitive rates.
             Pre-qualify in minutes and drive home your perfect car.
           </p>
-          <button className="flex w-fit items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-[#C81E1E] transition-all hover:bg-red-50 active:scale-[0.98]">
+          {/* <button className="flex w-fit items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-[#C81E1E] transition-all hover:bg-red-50 active:scale-[0.98]">
             Get Pre-Approved
             <ArrowRight className="h-4 w-4" />
-          </button>
+          </button> */}
         </div>
       </div>
     </section>

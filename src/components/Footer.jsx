@@ -1,5 +1,4 @@
 import {
-  Car,
   Facebook,
   Twitter,
   Instagram,
@@ -9,12 +8,13 @@ import {
   Mail,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import logo from "../assets/millennium-logo.jpg";
 
 export default function Footer() {
   const quickLinks = [
     "Home",
     "About Us",
-    "Fleet-Available",
+    "Our Fleet",
     "How it Works",
     "Blog",
     "Contact",
@@ -23,6 +23,7 @@ export default function Footer() {
     if (item === "Home") return "/";
     if (item === "About Us") return "/about";
     if (item === "Contact") return "/contact";
+    if (item === "Our Fleet") return "/#listings";
     return `/#${item.toLowerCase().replace(/\s+/g, "-")}`;
   };
 
@@ -32,11 +33,13 @@ export default function Footer() {
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              <div className="bg-[#E53E3E] p-2.5 rounded-xl">
-                <Car className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-white">Millennium</span>
-            </div>
+  <img
+    src={logo}
+    alt="Millennium Logo"
+    className="h-12 w-auto object-contain"
+  />
+  <span className="text-2xl font-bold text-white"></span>
+</div>
             <p className="text-gray-500 leading-relaxed mb-6 max-w-sm">
               Your trusted partner for affordable and secure car rentals.
               Premium vehicles, exceptional service, unbeatable prices.
