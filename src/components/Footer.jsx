@@ -1,12 +1,5 @@
-import {
-  Facebook,
-  Twitter,
-  Instagram,
-  Linkedin,
-  MapPin,
-  Phone,
-  Mail,
-} from "lucide-react";
+import { business, socialLinks } from "../config/business";
+import { MapPin, Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "../assets/millennium-logo.jpg";
 
@@ -16,7 +9,6 @@ export default function Footer() {
     "About Us",
     "Our Fleet",
     "How it Works",
-    "Blog",
     "Contact",
   ];
   const toForItem = (item) => {
@@ -45,30 +37,9 @@ export default function Footer() {
               Premium vehicles, exceptional service, unbeatable prices.
             </p>
             <div className="flex gap-4">
-              <a
-                href="#"
-                className="bg-gray-800 p-2.5 rounded-lg hover:bg-[#E53E3E] transition-all"
-              >
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="bg-gray-800 p-2.5 rounded-lg hover:bg-[#E53E3E] transition-all"
-              >
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="bg-gray-800 p-2.5 rounded-lg hover:bg-[#E53E3E] transition-all"
-              >
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="bg-gray-800 p-2.5 rounded-lg hover:bg-[#E53E3E] transition-all"
-              >
-                <Linkedin className="w-5 h-5" />
-              </a>
+              {socialLinks.map(({ name, url }) => (
+                <a key={name} href={url} target="_blank" rel="noopener noreferrer" className="hover:text-white">{name}</a>
+              ))}
             </div>
           </div>
 
@@ -100,7 +71,7 @@ export default function Footer() {
               ].map((item) => (
                 <li key={item}>
                   <a
-                    href="#"
+                    href="/#listings"
                     className="hover:text-[#E53E3E] transition-colors"
                   >
                     {item}
@@ -137,10 +108,10 @@ export default function Footer() {
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-[#E53E3E] flex-shrink-0" />
                 <a
-                  href="mailto:info@millennium.com"
+                  href={`mailto:${business.email}`}
                   className="hover:text-white transition-colors"
                 >
-                  abhilashgomez@gmail.com
+                  {business.email}
                 </a>
               </li>
             </ul>
@@ -150,17 +121,7 @@ export default function Footer() {
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm">© 2026 Millennium. All rights reserved.</p>
-            <div className="flex gap-6 text-sm">
-              <a href="#" className="hover:text-white transition-colors">
-                Privacy Policy
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
-                Terms of Service
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
-                Cookie Policy
-              </a>
-            </div>
+
           </div>
           <p className="mt-4 text-center text-xs text-gray-500">
             Powered by{" "}

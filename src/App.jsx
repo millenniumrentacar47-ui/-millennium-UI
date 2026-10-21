@@ -1,3 +1,4 @@
+import PageMetadata from "./components/PageMetadata";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -21,6 +22,7 @@ export default function App() {
     <div className="min-h-screen bg-white text-gray-900 antialiased">
       {!hideHeader && <Header />}
 
+      <PageMetadata />
       <ScrollToHash />
 
       <Routes>

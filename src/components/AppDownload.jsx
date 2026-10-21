@@ -19,14 +19,14 @@ export default function FinancingBanner() {
         {/* Text content */}
         <div className="relative z-10 flex w-full flex-col justify-center px-6 py-10 sm:px-10 lg:w-[55%] lg:px-14 lg:py-14">
           <span className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-red-100">
-            Financing Made Simple
+            Car Rentals Made Simple
           </span>
           <h2 className="mb-3 max-w-md text-3xl font-bold leading-tight text-white lg:text-4xl">
-            Get Behind the Wheel Today
+            Plan Your Next Journey
           </h2>
           <p className="mb-7 max-w-md text-sm text-white/80 lg:text-base">
-            Choose from flexible financing options with competitive rates.
-            Pre-qualify in minutes and drive home your perfect car.
+            Explore our fleet and contact us about rental availability and pricing
+            for your preferred travel dates.
           </p>
           {/* <button className="flex w-fit items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-[#C81E1E] transition-all hover:bg-red-50 active:scale-[0.98]">
             Get Pre-Approved

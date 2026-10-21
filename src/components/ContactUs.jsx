@@ -1,3 +1,4 @@
+import { business, socialLinks } from "../config/business";
 import { useEffect, useRef, useState } from "react";
 import {
   Mail,
@@ -5,12 +6,7 @@ import {
   MapPin,
   Clock,
   Send,
-  CheckCircle2,
-  Loader2,
   MessageSquare,
-  Facebook,
-  Instagram,
-  Twitter,
   ExternalLink,
 } from "lucide-react";
 
@@ -24,7 +20,7 @@ const contactInfo = [
   {
     icon: <Mail className="h-5 w-5" />,
     label: "Email Us",
-    value: "millennium@gmail.com",
+    value: business.email,
     sub: "We reply within a few hours",
   },
   {
@@ -94,7 +90,10 @@ function FloatingField({
   return (
     <div className="relative">
       <Tag
+        id={name}
         name={name}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? `${name}-error` : undefined}
         type={!textarea ? type : undefined}
         value={value}
         onChange={onChange}
@@ -108,6 +107,7 @@ function FloatingField({
         } ${textarea ? "resize-none" : ""}`}
       />
       <label
+        htmlFor={name}
         className={`pointer-events-none absolute left-4 transition-all duration-200 ${
           focused || hasValue
             ? "top-2 text-[11px] font-medium text-[#E53E3E]"
@@ -117,7 +117,7 @@ function FloatingField({
         {label}
       </label>
       {error && (
-        <p className="mt-1.5 text-xs font-medium text-red-500">{error}</p>
+        <p id={`${name}-error`} role="alert" className="mt-1.5 text-xs font-medium text-red-500">{error}</p>
       )}
     </div>
   );
@@ -135,7 +135,7 @@ export default function ContactUs() {
     message: "",
   });
   const [errors, setErrors] = useState({});
-  const [status, setStatus] = useState("idle"); // idle | sending | sent
+  const [status, setStatus] = useState("idle");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -156,8 +156,9 @@ export default function ContactUs() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    setStatus("sending");
-    setTimeout(() => setStatus("sent"), 1500);
+    const body = `Name: ${form.name.trim()}\nEmail: ${form.email.trim()}\nPhone: ${form.phone.trim() || "Not provided"}\n\n${form.message.trim()}`;
+    window.location.href = `mailto:${business.email}?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(body)}`;
+    setStatus("draft");
   };
 
   return (
@@ -228,7 +229,9 @@ export default function ContactUs() {
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
                   {item.label}
                 </p>
-                <p className="mt-0.5 font-bold text-gray-900">{item.value}</p>
+                <p className="mt-0.5 font-bold text-gray-900">
+                  {item.label === "Email Us" ? <a className="hover:underline" href={`mailto:${business.email}`}>{item.value}</a> : item.label === "Call Us" ? <a className="hover:underline" href={`tel:${business.phone}`}>{item.value}</a> : item.value}
+                </p>
                 <p className="text-xs text-gray-500">{item.sub}</p>
               </div>
             </div>
@@ -291,13 +294,15 @@ export default function ContactUs() {
               </div>
 
               <div className="flex items-center gap-3 pt-2">
-                {[Facebook, Instagram, Twitter].map((Icon, i) => (
+                {socialLinks.map(({ name, url }) => (
                   <a
-                    key={i}
-                    href="#"
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white/80 transition hover:bg-[#E53E3E] hover:text-white"
+                    key={name}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-9 items-center justify-center rounded-lg px-3 bg-white/10 text-white/80 transition hover:bg-[#E53E3E] hover:text-white"
                   >
-                    <Icon className="h-4 w-4" />
+                    {name}
                   </a>
                 ))}
               </div>
@@ -313,42 +318,19 @@ export default function ContactUs() {
               transitionDelay: "120ms",
             }}
           >
-            {status === "sent" ? (
-              <div className="flex flex-col items-center py-10 text-center">
-                <div className="cu-pop mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
-                  <CheckCircle2 className="h-8 w-8" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">
-                  Message sent
-                </h3>
-                <p className="mt-2 max-w-xs text-sm text-gray-500">
-                  Thanks for reaching out — a member of our team will get back
-                  to you shortly.
-                </p>
-                <button
-                  onClick={() => {
-                    setStatus("idle");
-                    setForm({
-                      name: "",
-                      email: "",
-                      phone: "",
-                      subject: subjects[0],
-                      message: "",
-                    });
-                  }}
-                  className="mt-6 rounded-xl border border-gray-200 px-6 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-                >
-                  Send Another Message
-                </button>
-              </div>
-            ) : (
+            {status === "draft" && (
+              <p role="status" className="mb-5 rounded-xl bg-red-50 p-4 text-sm text-gray-700">
+                Your email draft is ready. Send it from your email app to complete your enquiry.
+                If the app did not open, email <a className="underline" href={`mailto:${business.email}`}>{business.email}</a> directly.
+              </p>
+            )}
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">
                     Send Us a Message
                   </h2>
                   <p className="mt-1 text-sm text-gray-500">
-                    Fill out the form and we'll get back to you shortly.
+                    Complete the form to open an email draft. Send it from your email app.
                   </p>
                 </div>
 
@@ -380,6 +362,7 @@ export default function ContactUs() {
 
                 <div className="relative">
                   <select
+                    aria-label="Subject"
                     name="subject"
                     value={form.subject}
                     onChange={handleChange}
@@ -404,21 +387,11 @@ export default function ContactUs() {
 
                 <button
                   type="submit"
-                  disabled={status === "sending"}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#E53E3E] py-3.5 font-semibold text-white transition-all hover:bg-red-700 active:scale-[0.98] disabled:opacity-80"
                 >
-                  {status === "sending" ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" /> Sending…
-                    </>
-                  ) : (
-                    <>
-                      Send Message <Send className="h-4 w-4" />
-                    </>
-                  )}
+                  Open Email Draft <Send className="h-4 w-4" />
                 </button>
               </form>
-            )}
           </div>
         </div>
       </section>

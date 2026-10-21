@@ -115,9 +115,9 @@ export default function Header() {
                 </Link>
               );
             })}
-            <button className="mt-2 w-full rounded-xl bg-[#E53E3E] px-7 py-3 font-semibold text-white">
+            <Link to="/#listings" onClick={() => setMobileMenuOpen(false)} className="mt-2 block w-full rounded-xl bg-[#E53E3E] px-7 py-3 text-center font-semibold text-white">
               Choose Car
-            </button>
+            </Link>
           </nav>
         </div>
       )}

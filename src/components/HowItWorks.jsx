@@ -18,7 +18,7 @@ const steps = [
     num: 3,
     icon: <Check className="w-6 h-6" />,
     title: "Book & Confirm",
-    desc: "Complete your reservation with instant confirmation",
+    desc: "Send your booking request; our team confirms availability",
   },
   {
     num: 4,
