@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 
 /** Your WhatsApp Business number, country code first, digits only
  *  (no +, no spaces, no dashes). Replace this with the real number. */
-const WHATSAPP_NUMBER = "919947000500";
+const WHATSAPP_NUMBER = "919497485000";
 
 function buildWhatsAppMessage(dealTitle, formData) {
   const lines = [

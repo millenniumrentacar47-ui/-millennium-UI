@@ -29,7 +29,7 @@ const APPS_SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbxPFlYns1f4-Evy6-UW1XW4lJltrlKcHppqIsZqQQ7IMif90MFapVPrrkOrTkFUCcgGLQ/exec";
 
 // WhatsApp number bookings get sent to (country code + number, no + or spaces)
-const WHATSAPP_NUMBER = "919947000500";
+const WHATSAPP_NUMBER = "919497485000";
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600&h=400&fit=crop";

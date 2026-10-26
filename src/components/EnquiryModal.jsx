@@ -59,7 +59,7 @@ const SERVICE_CONFIG = {
 
 /** Your WhatsApp Business number, country code first, digits only
  *  (no +, no spaces, no dashes). Replace this with the real number. */
-const WHATSAPP_NUMBER = "919947000500";
+const WHATSAPP_NUMBER = "919497485000";
 
 /** Turns the submitted form into a readable WhatsApp message. */
 function buildWhatsAppMessage(serviceTitle, resolvedType, config, formData) {
