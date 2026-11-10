@@ -30,8 +30,8 @@ export default function CustomerFeedback() {
             <img
               src="/google-review-qr.png"
               alt="Scan this QR code to leave a review for Millennium Group"
-              width="492"
-              height="493"
+              width="426"
+              height="397"
               loading="lazy"
               className="block h-auto w-full"
             />
